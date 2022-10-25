@@ -15,6 +15,14 @@ def _flatten_kv(k, v):
         return str(k) + ":" + str(v)
 
 
+
+def invert_abstract(inv_index):
+
+    if inv_index is not None:
+        l = [(w, p) for w, pos in inv_index.items() for p in pos ]
+        return " ".join(map(lambda x: x[0], sorted(l, key=lambda x: x[1])))
+
+
 class BaseOpenAlex(object):
 
     """Base class for OpenAlex objects."""
@@ -25,29 +33,41 @@ class BaseOpenAlex(object):
         self.url = None
         self.params = params
 
+    def _parse_result(self, res):
+
+        return res
+
     def get(self, return_meta=False):
 
         if self.record_id is not None:
             url = self.url + "/" + self.record_id
         else:
-            url = self.url
+            l = []
+            # level of filter and sort
+            for k, v in self.params.items():
+                if k in ["filter", "sort"]:
+                    l.append(k + "=" + ",".join(_flatten_kv(k, d) for k, d in v.items()))
+                else:
+                    l.append(k + "=" + v)
 
-        l = []
-        # level of filter and sort
-        for k, v in self.params.items():
-            l.append(k + "=" + ",".join(_flatten_kv(k, d) for k, d in v.items()))
+            url = self.url + "?" + '&'.join(l)
 
-        res = requests.get(url + "?" + '&'.join(l))
+        res = requests.get(url)
         res.raise_for_status()
         res_json = res.json()
 
         if self.record_id is not None:
-            return res_json
+            return self._parse_result(res_json)
+
+        if "group_by" in self.params:
+            results = res_json["group_by"]
+        else:
+            results = self._parse_result(res_json["results"])
 
         if return_meta:
-            return res_json["meta"], res_json["results"]
+            return res_json["meta"], results
         else:
-            return res_json["results"]
+            return results
 
     def get_random(self):
 
@@ -70,25 +90,47 @@ class BaseOpenAlex(object):
 
         return self
 
-    # def sort(self, **kwargs):
+    def sort(self, **kwargs):
 
-    #     parsed_args = list(_parse_kwargs(kwargs))
+        p = self.params.copy()
 
-    #     if "sort" in self.params:
-    #         self.params["sort"].extend(parsed_args)
-    #     else:
-    #         self.params["sort"] = parsed_args
+        if "sort" in p:
+            p["sort"] = {**p["sort"], **kwargs}
+        else:
+            p["sort"] = kwargs
 
-    #     return self
+        self.params = p
+        logging.debug("Params updated:", p)
+
+        return self
+
+    def group_by(self, group_key):
+
+        p = self.params.copy()
+        p["group_by"] = group_key
+        self.params = p
+
+        logging.debug("Params updated:", p)
+
+        return self
+
 
 
 class Works(BaseOpenAlex):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, abstract=True, **kwargs):
         super(Works, self).__init__(*args, **kwargs)
 
+        self.abstract = abstract
         self.url = "https://api.openalex.org/works"
 
+    def _parse_result(self, res):
+
+        if self.abstract and "abstract_inverted_index" in res:
+            res["abstract"] = invert_abstract(res["abstract_inverted_index"])
+            del res["abstract_inverted_index"]
+
+        return res
 
 class Authors(BaseOpenAlex):
 

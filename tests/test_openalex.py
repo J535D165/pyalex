@@ -20,6 +20,10 @@ def test_W4238809453_works():
     assert isinstance(Works("W4238809453").get(), dict)
 
 
+def test_W4238809453_works_abstract():
+
+    assert "abstract" in Works("W4238809453").get()
+
 def test_random_works():
 
     assert isinstance(Works().get_random(), dict)
@@ -46,3 +50,20 @@ def test_works_multifilter_meta():
     b, rb = Works().filter(publication_year=2020).filter(is_oa=True).get(return_meta=True)
 
     assert a["count"] == b["count"]
+
+def test_data_publications():
+
+    m, r = Works() \
+        .filter(authorships={"institutions": {"ror": "04pp8hn57"}}) \
+        .filter(type="dataset") \
+        .group_by("publication_year") \
+        .get(return_meta=True)
+
+    assert len(r) > 20
+
+
+
+
+
+
+
