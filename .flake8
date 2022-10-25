@@ -1,0 +1,12 @@
+
+[flake8]
+max-line-length = 100
+ignore =
+	C901,  # too complex (fail on this in future)
+    E402,  # module level import not at top of file
+    E203,  # whitespace before ':'
+    W503,  # line break before binary operator
+    W504,  # line break after binary operator
+    I201,  # Missing newline between import groups.
+
+application_import_names = openalex
