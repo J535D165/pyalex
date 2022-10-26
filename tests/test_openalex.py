@@ -51,6 +51,7 @@ def test_works_multifilter_meta():
 
     assert a["count"] == b["count"]
 
+
 def test_data_publications():
 
     m, r = Works() \

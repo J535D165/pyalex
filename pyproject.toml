@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10"
 ]
 license = {text = "MIT"}
-dependencies = ["gitignorefile", "natsort", "scisort", "seedir"]
+dependencies = ["requests"]
 dynamic = ["version"]
 requires-python = ">=3.6"
 

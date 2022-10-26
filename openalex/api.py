@@ -2,6 +2,8 @@ import requests
 from urllib.parse import quote_plus, quote, urlencode
 import logging
 
+OPENALEX_URL = "https://api.openalex.org"
+
 def _flatten_kv(k, v):
 
     if isinstance(v, dict):
@@ -43,12 +45,11 @@ class BaseOpenAlex(object):
             url = self.url + "/" + self.record_id
         else:
             l = []
-            # level of filter and sort
             for k, v in self.params.items():
                 if k in ["filter", "sort"]:
                     l.append(k + "=" + ",".join(_flatten_kv(k, d) for k, d in v.items()))
                 else:
-                    l.append(k + "=" + v)
+                    l.append(k + "=" + quote_plus(v))
 
             url = self.url + "?" + '&'.join(l)
 
@@ -56,14 +57,17 @@ class BaseOpenAlex(object):
         res.raise_for_status()
         res_json = res.json()
 
+        # single result
         if self.record_id is not None:
             return self._parse_result(res_json)
 
+        # group_by or results page
         if "group_by" in self.params:
             results = res_json["group_by"]
         else:
             results = self._parse_result(res_json["results"])
 
+        # return result and metadata
         if return_meta:
             return res_json["meta"], results
         else:
@@ -114,7 +118,15 @@ class BaseOpenAlex(object):
 
         return self
 
+    def search(self, s):
 
+        p = self.params.copy()
+        p["search"] = s
+        self.params = p
+
+        logging.debug("Params updated:", p)
+
+        return self
 
 class Works(BaseOpenAlex):
 
@@ -122,7 +134,7 @@ class Works(BaseOpenAlex):
         super(Works, self).__init__(*args, **kwargs)
 
         self.abstract = abstract
-        self.url = "https://api.openalex.org/works"
+        self.url = OPENALEX_URL + "/works"
 
     def _parse_result(self, res):
 
@@ -137,7 +149,7 @@ class Authors(BaseOpenAlex):
     def __init__(self, *args, **kwargs):
         super(Authors, self).__init__(*args, **kwargs)
 
-        self.url = "https://api.openalex.org/authors"
+        self.url = OPENALEX_URL + "/authors"
 
 
 class Venues(BaseOpenAlex):
@@ -145,7 +157,7 @@ class Venues(BaseOpenAlex):
     def __init__(self, *args, **kwargs):
         super(Venues, self).__init__(*args, **kwargs)
 
-        self.url = "https://api.openalex.org/venue"
+        self.url = OPENALEX_URL + "/venue"
 
 
 class Institutions(BaseOpenAlex):
@@ -153,7 +165,7 @@ class Institutions(BaseOpenAlex):
     def __init__(self, *args, **kwargs):
         super(Institutions, self).__init__(*args, **kwargs)
 
-        self.url = "https://api.openalex.org/institution"
+        self.url = OPENALEX_URL + "/institution"
 
 
 class Concepts(BaseOpenAlex):
@@ -161,5 +173,5 @@ class Concepts(BaseOpenAlex):
     def __init__(self, *args, **kwargs):
         super(Concepts, self).__init__(*args, **kwargs)
 
-        self.url = "https://api.openalex.org/concept"
+        self.url = OPENALEX_URL + "/concept"
 
