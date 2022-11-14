@@ -24,14 +24,16 @@ def test_W4238809453_works_abstract():
 
     assert "abstract" in Works("W4238809453").get()
 
+def test_W4238809453_works_no_abstract():
+
+    assert "abstract" not in Works("W4238809453", abstract=False).get()
+
 def test_random_works():
 
     assert isinstance(Works().get_random(), dict)
 
 
 def test_works_multifilter():
-
-    print("test", Works().params)
 
     r = requests.get("https://api.openalex.org/works?filter=publication_year:2020,is_oa:true").json()
 
@@ -61,6 +63,15 @@ def test_data_publications():
         .get(return_meta=True)
 
     assert len(r) > 20
+
+
+def test_search():
+
+    w = Works() \
+        .search("An open source machine learning framework for efficient and transparent systematic reviews") \
+        .get()
+
+    assert w[0]["doi"] == "https://doi.org/10.1038/s42256-020-00287-7"
 
 
 
