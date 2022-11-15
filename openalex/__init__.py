@@ -10,6 +10,8 @@ from openalex.api import Concepts
 from openalex.api import Institutions
 from openalex.api import Venues
 from openalex.api import Works
+from openalex.api import People
+from openalex.api import Journals
 from openalex.api import invert_abstract
 
-__all__ = ["Works", "Authors", "Venues", "Institutions", "Concepts", "invert_abstract"]
+__all__ = ["Works", "Authors", "Venues", "Institutions", "Concepts", "People", "Journals", "invert_abstract"]

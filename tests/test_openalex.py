@@ -57,7 +57,7 @@ def test_W4238809453_works_no_abstract():
 
 def test_random_works():
 
-    assert isinstance(Works().get_random(), dict)
+    assert isinstance(Works().random(), dict)
 
 
 def test_works_multifilter():

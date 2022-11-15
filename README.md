@@ -11,12 +11,12 @@ things are often intuitive when looking at the REST API documentation.
 
 The following features of the OpenAlex REST API are currently supported:
 
-- [x] Retrieve single Work, Author, Venue, Institution, or Concept
-- [x] Filter Works, Authors, Venues, Institutions, or Concepts
-- [x] Search Works, Authors, Venues, Institutions, or Concepts
-- [x] Group Works, Authors, Venues, Institutions, or Concepts
+- [x] Get single entities
+- [x] Filter entities
+- [x] Search entities
+- [x] Group entities
 - [x] Search filters
-- [ ] Pagination
+- [x] Pagination
 - [ ] [Autocomplete endpoint](https://docs.openalex.org/api/autocomplete-endpoint)
 - [ ] [N-grams](https://docs.openalex.org/api/get-n-grams)
 
@@ -126,14 +126,13 @@ while page is not None:
 
 #### Cursor
 
-
 ```python
 from openalex import Authors
 
 # example query
 query = Authors().search_filter(display_name="einstein")
 
-# set the next_cursor
+# set the next_cursor (to *)
 next_cursor = "*"
 
 # store the results

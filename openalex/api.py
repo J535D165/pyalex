@@ -5,7 +5,13 @@ from urllib.parse import urlencode
 
 import requests
 
+try:
+    from openalex._version import __version__
+except ImportError:
+    __version__ = "0.0.0"
+
 OPENALEX_URL = "https://api.openalex.org"
+EMAIL = None
 
 
 def _flatten_kv(k, v):
@@ -39,11 +45,16 @@ class BaseOpenAlex(object):
         self.url = None
         self.params = params
 
+    @property
+    def _headers(self):
+        return {'User-Agent': 'pyalex/' + __version__,
+                'email': EMAIL}
+
     def _parse_result(self, res):
 
         return res
 
-    def get(self, return_meta=False, per_page=25):
+    def get(self, return_meta=False, page=None, per_page=25, cursor=None):
 
         if per_page < 1 or per_page > 200:
             raise ValueError("per_page should be a number between 1 and 200.")
@@ -51,7 +62,9 @@ class BaseOpenAlex(object):
         if self.record_id is not None:
             url = self.url + "/" + self.record_id
         else:
-            self.params["per-page"] = str(per_page)
+            self.params["per-page"] = per_page
+            self.params["page"] = page
+            self.params["cursor"] = cursor
 
             l = []
             for k, v in self.params.items():
@@ -59,12 +72,14 @@ class BaseOpenAlex(object):
                     l.append(
                         k + "=" + ",".join(_flatten_kv(k, d) for k, d in v.items())
                     )
+                elif v is None:
+                    pass
                 else:
-                    l.append(k + "=" + quote_plus(v))
+                    l.append(k + "=" + quote_plus(str(v)))
 
             url = self.url + "?" + "&".join(l)
 
-        res = requests.get(url)
+        res = requests.get(url, headers=self._headers)
         res.raise_for_status()
         res_json = res.json()
 
@@ -84,12 +99,10 @@ class BaseOpenAlex(object):
         else:
             return results
 
-    def get_random(self):
+    def random(self):
 
-        res = requests.get(self.url + "/random")
-        res.raise_for_status()
-
-        return res.json()
+        self.record_id = "random"
+        return self.get()
 
     def filter(self, **kwargs):
 
@@ -198,3 +211,7 @@ class Concepts(BaseOpenAlex):
         super(Concepts, self).__init__(*args, **kwargs)
 
         self.url = OPENALEX_URL + "/concepts"
+
+# aliases
+People = Authors
+Journals = Venues
