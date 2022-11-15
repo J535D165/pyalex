@@ -110,3 +110,13 @@ def test_search():
     )
 
     assert w[0]["doi"] == "https://doi.org/10.1038/s42256-020-00287-7"
+
+def test_search_filter():
+
+    r = requests.get(
+        "https://api.openalex.org/authors?filter=display_name.search:einstein"
+    ).json()
+
+    a, ra = Authors().search_filter(display_name="einstein").get(return_meta=True)
+
+    assert r["meta"]["count"] == a["count"]

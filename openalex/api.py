@@ -100,6 +100,22 @@ class BaseOpenAlex(object):
 
         return self
 
+    def search_filter(self, **kwargs):
+
+        search_kwargs = {f"{k}.search":v for k, v in kwargs.items()}
+
+        p = self.params.copy()
+
+        if "filter" in p:
+            p["filter"] = {**p["filter"], **search_kwargs}
+        else:
+            p["filter"] = search_kwargs
+
+        self.params = p
+        logging.debug("Params updated:", p)
+
+        return self
+
     def sort(self, **kwargs):
 
         p = self.params.copy()
