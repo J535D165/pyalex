@@ -7,6 +7,20 @@ from openalex import Venues
 from openalex import Works
 
 
+def test_meta_entities():
+
+    m, r = Authors().get(return_meta=True)
+    assert "count" in m
+    m, r = Concepts().get(return_meta=True)
+    assert "count" in m
+    m, r = Institutions().get(return_meta=True)
+    assert "count" in m
+    m, r = Venues().get(return_meta=True)
+    assert "count" in m
+    m, r = Works().get(return_meta=True)
+    assert "count" in m
+
+
 def test_works_params():
 
     assert len(Works(params={"filter": {"publication_year": "2020"}}).get()) == 25

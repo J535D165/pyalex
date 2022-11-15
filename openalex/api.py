@@ -162,18 +162,18 @@ class Venues(BaseOpenAlex):
     def __init__(self, *args, **kwargs):
         super(Venues, self).__init__(*args, **kwargs)
 
-        self.url = OPENALEX_URL + "/venue"
+        self.url = OPENALEX_URL + "/venues"
 
 
 class Institutions(BaseOpenAlex):
     def __init__(self, *args, **kwargs):
         super(Institutions, self).__init__(*args, **kwargs)
 
-        self.url = OPENALEX_URL + "/institution"
+        self.url = OPENALEX_URL + "/institutions"
 
 
 class Concepts(BaseOpenAlex):
     def __init__(self, *args, **kwargs):
         super(Concepts, self).__init__(*args, **kwargs)
 
-        self.url = OPENALEX_URL + "/concept"
+        self.url = OPENALEX_URL + "/concepts"
