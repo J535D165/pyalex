@@ -35,7 +35,7 @@ pip install pyalex
 PyAlex offers support for all [Entity Objects](https://docs.openalex.org/about-the-data#entity-objects).
 
 ```python
-from pyalex import Work, Authors, Venues, Institutions, Concepts
+from pyalex import Works, Authors, Venues, Institutions, Concepts
 ```
 
 ### Get single entities
@@ -96,6 +96,63 @@ Works()
 Works().search("fierce creatures").get()
 ```
 
+### Pagination
+
+#### Per page
+
+```python
+from openalex import Authors
+
+# example query
+query = Authors().search_filter(display_name="einstein")
+
+# set the page
+page = 1
+
+# store the results
+results = []
+
+# loop till page is None
+while page is not None:
+
+    # get the results
+    m, r = query.get(return_meta=True, per_page=200, page=page)
+
+    # results
+    results.append(r)
+
+    page = m["page"] + 1 if page is not None else None
+```
+
+#### Cursor
+
+
+```python
+from openalex import Authors
+
+# example query
+query = Authors().search_filter(display_name="einstein")
+
+# set the next_cursor
+next_cursor = "*"
+
+# store the results
+results = []
+
+# loop till next_cursor is None
+while next_cursor is not None:
+
+    # get the results
+    m, r = query.get(return_meta=True, per_page=200, cursor=next_cursor)
+
+    # results
+    results.extend(r)
+
+    # set the next cursor
+    next_cursor = m["next_cursor"]
+```
+
+
 
 ### Search filter
 
@@ -122,7 +179,7 @@ Works().sort(cited_by_count="desc").get()
 Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex.org/api/get-single-entities#random-entity).
 
 ```python
-Works().get_random()
+Works().random()
 ```
 
 ## Tutorial
