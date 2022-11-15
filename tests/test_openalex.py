@@ -35,6 +35,11 @@ def test_works():
     assert Works().params == {}
 
 
+def test_per_page():
+
+    assert len(Works().filter(publication_year=2020).get(per_page=200)) == 200
+
+
 def test_W4238809453_works():
 
     assert isinstance(Works("W4238809453").get(), dict)
@@ -120,3 +125,6 @@ def test_search_filter():
     a, ra = Authors().search_filter(display_name="einstein").get(return_meta=True)
 
     assert r["meta"]["count"] == a["count"]
+
+
+

@@ -43,11 +43,16 @@ class BaseOpenAlex(object):
 
         return res
 
-    def get(self, return_meta=False):
+    def get(self, return_meta=False, per_page=25):
+
+        if per_page < 1 or per_page > 200:
+            raise ValueError("per_page should be a number between 1 and 200.")
 
         if self.record_id is not None:
             url = self.url + "/" + self.record_id
         else:
+            self.params["per-page"] = str(per_page)
+
             l = []
             for k, v in self.params.items():
                 if k in ["filter", "sort"]:
