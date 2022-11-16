@@ -87,9 +87,9 @@ class BaseOpenAlex(object):
         if self.record_id is not None:
             return self._parse_result(res_json)
 
-        # group_by or results page
-        if "group_by" in self.params:
-            results = res_json["group_by"]
+        # group-by or results page
+        if "group-by" in self.params:
+            results = res_json["group-by"]
         else:
             results = self._parse_result(res_json["results"])
 
@@ -151,7 +151,7 @@ class BaseOpenAlex(object):
     def group_by(self, group_key):
 
         p = self.params.copy()
-        p["group_by"] = group_key
+        p["group-by"] = group_key
         self.params = p
 
         logging.debug("Params updated:", p)
