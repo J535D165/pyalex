@@ -1,10 +1,10 @@
 import requests
 
-from openalex import Authors
-from openalex import Concepts
-from openalex import Institutions
-from openalex import Venues
-from openalex import Works
+from pyalex import Authors
+from pyalex import Concepts
+from pyalex import Institutions
+from pyalex import Venues
+from pyalex import Works
 
 
 def test_meta_entities():
