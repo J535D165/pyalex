@@ -96,9 +96,15 @@ Works()
 Works().search("fierce creatures").get()
 ```
 
-### Pagination
+### Paging
 
-#### Per page
+OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/api#basic-paging) and [cursor paging](https://docs.openalex.org/api#cursor-paging). Both methods are supported by PyAlex, although it is STRONGLY ADVISED to use cursor paging. Cursor paging is easier to implement and less error-prone.
+
+#### Basic paging
+
+See limitations of [basic paging]
+(https://docs.openalex.org/api#basic-paging) on OpenAlex API documentation.
+Cursor paging is probably a better solution to implement.
 
 ```python
 from openalex import Authors
@@ -124,7 +130,7 @@ while page is not None:
     page = m["page"] + 1 if page is not None else None
 ```
 
-#### Cursor
+#### Cursor paging
 
 ```python
 from openalex import Authors
@@ -150,8 +156,6 @@ while next_cursor is not None:
     # set the next cursor
     next_cursor = m["next_cursor"]
 ```
-
-
 
 ### Search filter
 
@@ -181,9 +185,34 @@ Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex
 Works().random()
 ```
 
-## Tutorial
+## Code snippets
 
+A list of awesome use cases of the OpenAlex dataset.
 
+### Cited publications (referenced works)
+
+```python
+from pyalex import Works
+
+# the work to extract the referenced works of
+w = Works("W2741809807").get()
+
+Works().filter(openalex_id="|".join(w["referenced_works"])).get()
+```
+
+### Dataset publications in the global south
+
+```python
+from pyalex import Works
+
+# the work to extract the referenced works of
+w = Works() \
+  .filter(institutions={"is_global_south":True}) \
+  .filter(type="dataset") \
+  .group_by("institutions.country_code") \
+  .get()
+
+```
 
 ## License
 
