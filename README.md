@@ -4,12 +4,12 @@
 
 # PyAlex
 
-PyAlex is a Python library for the OpenAlex. It makes use of OpenAlex's
-extensive REST API. This Python library tries to stick as close as possible
-to the format of the original API. Not all components are documented, as
-things are often intuitive when looking at the REST API documentation.
+PyAlex is a Python library for [OpenAlex](https://openalex.org/). OpenAlex is an index of hundreds of millions of interconnected scholarly papers, authors, institutions, and more. 
 
-The following features of the OpenAlex REST API are currently supported:
+PyAlex follows the format of the [OpenAlex REST API](https://docs.openalex.org/). Not all components of PyAlex are documented, as
+the use of PyAlex is often intuitive when looking at the REST API documentation.
+
+The following features of the OpenAlex REST API are currently supported by PyAlex:
 
 - [x] Get single entities
 - [x] Filter entities
@@ -20,7 +20,13 @@ The following features of the OpenAlex REST API are currently supported:
 - [ ] [Autocomplete endpoint](https://docs.openalex.org/api/autocomplete-endpoint)
 - [ ] [N-grams](https://docs.openalex.org/api/get-n-grams)
 
-## Principles
+We aim to cover the entire API and we are looking for help. We are welcoming Pull Requests. 
+
+## Key features
+
+- **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/about-the-data/work#abstract_inverted_index) due to legal constraints. PyAlex converts the inverted abstracts into plaintext abstracts on the fly.
+- **Pipe operations** - PyAlex can handle multiple operations in a seqence. This allows the developer to write understandable queries. For examples, see [code snippets](#code-snippets).
+- **Permissive license** - OpenAlex data is CC0 licensed :raised_hands:. PyAlex is published under the MIT license.
 
 ## Installation
 
