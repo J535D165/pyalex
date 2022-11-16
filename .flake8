@@ -9,4 +9,4 @@ ignore =
     W504,  # line break after binary operator
     I201,  # Missing newline between import groups.
 
-application_import_names = openalex
+application_import_names = pyalex

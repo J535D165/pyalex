@@ -1,5 +1,5 @@
 [project]
-name = "openalex"
+name = "pyalex"
 description = "One downloader for many scientific data and code repositories!"
 authors = [
     { name = "Jonathan de Bruin", email = "jonathandebruinos@gmail.com" }
@@ -23,15 +23,12 @@ requires-python = ">=3.6"
 lint = ["flake8", "flake8-import-order"]
 test = ["pytest"]
 
-[project.scripts]
-openalex = "openalex.__main__:main"
-
 [build-system]
 build-backend = 'setuptools.build_meta'
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
 
 [tool.setuptools]
-packages = ["openalex"]
+packages = ["pyalex"]
 
 [tool.setuptools_scm]
-write_to = "openalex/_version.py"
+write_to = "pyalex/_version.py"
