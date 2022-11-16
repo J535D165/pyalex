@@ -127,4 +127,12 @@ def test_search_filter():
     assert r["meta"]["count"] == a["count"]
 
 
+def test_referenced_works():
+
+    # the work to extract the referenced works of
+    w = Works("W2741809807").get()
+
+    m, w1 = Works().filter(openalex_id="|".join(w["referenced_works"])).get(return_meta=True)
+
+    assert m["count"] == len(w["referenced_works"])
 
