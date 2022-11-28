@@ -60,7 +60,7 @@ Works("W2741809807").get()
 For list of enities, you can return the result as well as the metadata. By default, only the results are returned.
 
 ```python
-meta, results = Concepts().get(return_meta=True)
+results, meta = Concepts().get(return_meta=True)
 print(meta)
 ```
 
@@ -128,7 +128,7 @@ results = []
 while page is not None:
 
     # get the results
-    m, r = query.get(return_meta=True, per_page=200, page=page)
+    r, m = query.get(return_meta=True, per_page=200, page=page)
 
     # results
     results.append(r)
@@ -154,7 +154,7 @@ results = []
 while next_cursor is not None:
 
     # get the results
-    m, r = query.get(return_meta=True, per_page=200, cursor=next_cursor)
+    r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
 
     # results
     results.extend(r)
@@ -216,6 +216,31 @@ w = Works() \
   .filter(institutions={"is_global_south":True}) \
   .filter(type="dataset") \
   .group_by("institutions.country_code") \
+  .get()
+
+```
+
+### Most cited publications in your organisation
+
+```python
+from pyalex import Works
+
+Works() \
+  .filter(authorships={"institutions": {"ror": "04pp8hn57"}}) \
+  .sort(cited_by_count="desc") \
+  .get()
+
+```
+
+Same, but with only for first authors
+
+```python
+from pyalex import Works
+
+Works() \
+  .filter(authorships={"institutions": {"ror": "04pp8hn57"},
+                       "author_position": "first"}) \
+  .sort(cited_by_count="desc") \
   .get()
 
 ```

@@ -1,7 +1,5 @@
 import logging
-from urllib.parse import quote
 from urllib.parse import quote_plus
-from urllib.parse import urlencode
 
 import requests
 
@@ -24,6 +22,10 @@ def _flatten_kv(k, v):
         k_0 = list(v.keys())[0]
         return str(k) + "." + _flatten_kv(k_0, v[k_0])
     else:
+
+        # workaround for bug https://groups.google.com/u/1/g/openalex-users/c/t46RWnzZaXc
+        v = str(v).lower() if isinstance(v, bool) else v
+
         return str(k) + ":" + str(v)
 
 
@@ -47,16 +49,15 @@ class BaseOpenAlex(object):
 
     @property
     def _headers(self):
-        return {'User-Agent': 'pyalex/' + __version__,
-                'email': EMAIL}
+        return {"User-Agent": "pyalex/" + __version__, "email": EMAIL}
 
     def _parse_result(self, res):
 
         return res
 
-    def get(self, return_meta=False, page=None, per_page=25, cursor=None):
+    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
 
-        if per_page < 1 or per_page > 200:
+        if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
 
         if self.record_id is not None:
@@ -89,13 +90,13 @@ class BaseOpenAlex(object):
 
         # group-by or results page
         if "group-by" in self.params:
-            results = res_json["group-by"]
+            results = res_json["group_by"]
         else:
             results = self._parse_result(res_json["results"])
 
         # return result and metadata
         if return_meta:
-            return res_json["meta"], results
+            return results, res_json["meta"]
         else:
             return results
 
@@ -120,7 +121,7 @@ class BaseOpenAlex(object):
 
     def search_filter(self, **kwargs):
 
-        search_kwargs = {f"{k}.search":v for k, v in kwargs.items()}
+        search_kwargs = {f"{k}.search": v for k, v in kwargs.items()}
 
         p = self.params.copy()
 
@@ -211,6 +212,7 @@ class Concepts(BaseOpenAlex):
         super(Concepts, self).__init__(*args, **kwargs)
 
         self.url = OPENALEX_URL + "/concepts"
+
 
 # aliases
 People = Authors

@@ -8,10 +8,19 @@ except ImportError:
 from pyalex.api import Authors
 from pyalex.api import Concepts
 from pyalex.api import Institutions
+from pyalex.api import Journals
+from pyalex.api import People
 from pyalex.api import Venues
 from pyalex.api import Works
-from pyalex.api import People
-from pyalex.api import Journals
 from pyalex.api import invert_abstract
 
-__all__ = ["Works", "Authors", "Venues", "Institutions", "Concepts", "People", "Journals", "invert_abstract"]
+__all__ = [
+    "Works",
+    "Authors",
+    "Venues",
+    "Institutions",
+    "Concepts",
+    "People",
+    "Journals",
+    "invert_abstract",
+]

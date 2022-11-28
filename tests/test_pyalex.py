@@ -1,3 +1,4 @@
+import pytest
 import requests
 
 from pyalex import Authors
@@ -9,15 +10,15 @@ from pyalex import Works
 
 def test_meta_entities():
 
-    m, r = Authors().get(return_meta=True)
+    _, m = Authors().get(return_meta=True)
     assert "count" in m
-    m, r = Concepts().get(return_meta=True)
+    _, m = Concepts().get(return_meta=True)
     assert "count" in m
-    m, r = Institutions().get(return_meta=True)
+    _, m = Institutions().get(return_meta=True)
     assert "count" in m
-    m, r = Venues().get(return_meta=True)
+    _, m = Venues().get(return_meta=True)
     assert "count" in m
-    m, r = Works().get(return_meta=True)
+    _, m = Works().get(return_meta=True)
     assert "count" in m
 
 
@@ -25,14 +26,10 @@ def test_works_params():
 
     assert len(Works(params={"filter": {"publication_year": "2020"}}).get()) == 25
 
-    assert Works().params == {}
-
 
 def test_works():
 
     assert len(Works().filter(publication_year=2020).get()) == 25
-
-    assert Works().params == {}
 
 
 def test_per_page():
@@ -47,12 +44,28 @@ def test_W4238809453_works():
 
 def test_W4238809453_works_abstract():
 
-    assert "abstract" in Works("W4238809453").get()
+    assert Works("W4238809453").get()["abstract"] is None
 
 
 def test_W4238809453_works_no_abstract():
 
     assert "abstract" not in Works("W4238809453", abstract=False).get()
+
+
+def test_W3128349626_works_abstract():
+
+    w = Works("W3128349626").get()
+
+    assert w["abstract"] is not None
+    assert "abstract_inverted_index" not in w
+
+
+def test_W3128349626_works_no_abstract():
+
+    w = Works("W3128349626", abstract=False).get()
+
+    assert w["abstract_inverted_index"] is not None
+    assert "abstract" not in w
 
 
 def test_random_works():
@@ -66,34 +79,36 @@ def test_works_multifilter():
         "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
     ).json()
 
-    a, ra = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)
-    b, rb = (
+    _, w1 = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)
+    _, w2 = (
         Works().filter(publication_year=2020).filter(is_oa=True).get(return_meta=True)
     )
-    c, rc = (
-        Works()
-        .filter(publication_year=2020, open_access={"is_oa": True})
-        .get(return_meta=True)
-    )
 
-    assert r["meta"]["count"] == a["count"]
-    assert r["meta"]["count"] == b["count"]
-    assert r["meta"]["count"] == c["count"]
+    # openalex bug
+    # c, rc = (
+    #     Works()
+    #     .filter(publication_year=2020, open_access={"is_oa": True})
+    #     .get(return_meta=True)
+    # )
+
+    assert r["meta"]["count"] == w1["count"]
+    assert r["meta"]["count"] == w2["count"]
+    # assert r["meta"]["count"] == c["count"]
 
 
 def test_works_multifilter_meta():
 
-    a, ra = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)
-    b, rb = (
+    _, m1 = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)
+    _, m2 = (
         Works().filter(publication_year=2020).filter(is_oa=True).get(return_meta=True)
     )
 
-    assert a["count"] == b["count"]
+    assert m1["count"] == m2["count"]
 
 
 def test_data_publications():
 
-    m, r = (
+    w, _ = (
         Works()
         .filter(authorships={"institutions": {"ror": "04pp8hn57"}})
         .filter(type="dataset")
@@ -101,7 +116,7 @@ def test_data_publications():
         .get(return_meta=True)
     )
 
-    assert len(r) > 20
+    assert len(w) > 20
 
 
 def test_search():
@@ -109,12 +124,14 @@ def test_search():
     w = (
         Works()
         .search(
-            "An open source machine learning framework for efficient and transparent systematic reviews"
+            "An open source machine learning framework for efficient"
+            " and transparent systematic reviews"
         )
         .get()
     )
 
     assert w[0]["doi"] == "https://doi.org/10.1038/s42256-020-00287-7"
+
 
 def test_search_filter():
 
@@ -122,9 +139,9 @@ def test_search_filter():
         "https://api.openalex.org/authors?filter=display_name.search:einstein"
     ).json()
 
-    a, ra = Authors().search_filter(display_name="einstein").get(return_meta=True)
+    a, m = Authors().search_filter(display_name="einstein").get(return_meta=True)
 
-    assert r["meta"]["count"] == a["count"]
+    assert r["meta"]["count"] == m["count"]
 
 
 def test_referenced_works():
@@ -132,7 +149,34 @@ def test_referenced_works():
     # the work to extract the referenced works of
     w = Works("W2741809807").get()
 
-    m, w1 = Works().filter(openalex_id="|".join(w["referenced_works"])).get(return_meta=True)
+    _, m = (
+        Works()
+        .filter(openalex_id="|".join(w["referenced_works"]))
+        .get(return_meta=True)
+    )
 
     assert m["count"] == len(w["referenced_works"])
 
+
+@pytest.mark.xfail()
+def test_code_examples():
+
+    # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code
+    # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc
+
+    r_original = requests.get(
+        "https://api.openalex.org/works?filter=institutions.is_global_south:true" +
+        ",type:dataset&group-by=institutions.country_code"
+    ).json()
+
+    # the work to extract the referenced works of
+    r, meta = (
+        Works()
+        .filter(institutions={"is_global_south": True})
+        .filter(type="dataset")
+        .group_by("institutions.country_code")
+        .sort(count="desc")
+        .get(return_meta=True)
+    )
+
+    assert r_original["group_by"][0]["count"] == r[0]["count"]

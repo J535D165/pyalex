@@ -8,5 +8,6 @@ ignore =
     W503,  # line break before binary operator
     W504,  # line break after binary operator
     I201,  # Missing newline between import groups.
+    E741,  # ambiguous variable name
 
 application_import_names = pyalex
