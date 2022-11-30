@@ -144,6 +144,33 @@ def test_search_filter():
     assert r["meta"]["count"] == m["count"]
 
 
+def test_cursor_paging():
+
+    # example query
+    query = Authors().search_filter(display_name="einstein")
+
+    # store the results
+    results = []
+
+    next_cursor = "*"
+
+    # loop till next_cursor is None
+    while next_cursor is not None:
+
+        print(next_cursor)
+
+        # get the results
+        r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
+
+        # results
+        results.extend(r)
+
+        # set the next cursor
+        next_cursor = m["next_cursor"]
+
+    assert len(results) > 200
+
+
 def test_referenced_works():
 
     # the work to extract the referenced works of
