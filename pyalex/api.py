@@ -55,38 +55,57 @@ class BaseOpenAlex(object):
 
         return res
 
-    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
+    def _get_single_object(self, return_meta=False, subset=None):
 
-        if per_page is not None and (per_page < 1 or per_page > 200):
-            raise ValueError("per_page should be a number between 1 and 200.")
+        if self.record_id is None:
+            raise ValueError("No identifier available.")
 
-        if self.record_id is not None:
-            url = self.url + "/" + self.record_id
-        else:
-            self.params["per-page"] = per_page
-            self.params["page"] = page
-            self.params["cursor"] = cursor
+        url = self.url + "/" + self.record_id
 
-            l = []
-            for k, v in self.params.items():
-                if k in ["filter", "sort"]:
-                    l.append(
-                        k + "=" + ",".join(_flatten_kv(k, d) for k, d in v.items())
-                    )
-                elif v is None:
-                    pass
-                else:
-                    l.append(k + "=" + quote_plus(str(v)))
-
-            url = self.url + "?" + "&".join(l)
+        if subset is not None:
+            url = url + "/" + subset
 
         res = requests.get(url, headers=self._headers)
         res.raise_for_status()
         res_json = res.json()
 
-        # single result
+        if subset is not None:
+            results = res_json[subset]
+        else:
+            results = self._parse_result(res_json)
+
+        # return result and metadata
+        if return_meta:
+            return results, res_json["meta"]
+        else:
+            return results
+
+    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
+
         if self.record_id is not None:
-            return self._parse_result(res_json)
+            return self._get_single_object(return_meta=return_meta)
+
+        if per_page is not None and (per_page < 1 or per_page > 200):
+            raise ValueError("per_page should be a number between 1 and 200.")
+
+        self.params["per-page"] = per_page
+        self.params["page"] = page
+        self.params["cursor"] = cursor
+
+        l = []
+        for k, v in self.params.items():
+            if k in ["filter", "sort"]:
+                l.append(k + "=" + ",".join(_flatten_kv(k, d) for k, d in v.items()))
+            elif v is None:
+                pass
+            else:
+                l.append(k + "=" + quote_plus(str(v)))
+
+        url = self.url + "?" + "&".join(l)
+
+        res = requests.get(url, headers=self._headers)
+        res.raise_for_status()
+        res_json = res.json()
 
         # group-by or results page
         if "group-by" in self.params:
@@ -184,6 +203,10 @@ class Works(BaseOpenAlex):
             del res["abstract_inverted_index"]
 
         return res
+
+    def ngrams(self, return_meta=False):
+
+        return self._get_single_object(return_meta=return_meta, subset="ngrams")
 
 
 class Authors(BaseOpenAlex):

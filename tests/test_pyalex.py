@@ -165,8 +165,8 @@ def test_code_examples():
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc
 
     r_original = requests.get(
-        "https://api.openalex.org/works?filter=institutions.is_global_south:true" +
-        ",type:dataset&group-by=institutions.country_code"
+        "https://api.openalex.org/works?filter=institutions.is_global_south:true"
+        + ",type:dataset&group-by=institutions.country_code"
     ).json()
 
     # the work to extract the referenced works of
@@ -180,3 +180,17 @@ def test_code_examples():
     )
 
     assert r_original["group_by"][0]["count"] == r[0]["count"]
+
+
+def test_ngrams_without_metadata():
+
+    r = Works("W2023271753").ngrams(return_meta=False)
+
+    assert len(r) == 1068
+
+
+def test_ngrams_with_metadata():
+
+    r, meta = Works("W2023271753").ngrams(return_meta=True)
+
+    assert meta["count"] == 1068

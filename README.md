@@ -18,7 +18,7 @@ The following features of the OpenAlex REST API are currently supported by PyAle
 - [x] Search filters
 - [x] Pagination
 - [ ] [Autocomplete endpoint](https://docs.openalex.org/api/autocomplete-endpoint)
-- [ ] [N-grams](https://docs.openalex.org/api/get-n-grams)
+- [x] [N-grams](https://docs.openalex.org/api/get-n-grams)
 
 We aim to cover the entire API and we are looking for help. We are welcoming Pull Requests. 
 
@@ -181,6 +181,12 @@ See [Sort entity lists](https://docs.openalex.org/api/get-lists-of-entities/sort
 
 ```python
 Works().sort(cited_by_count="desc").get()
+```
+
+### Get ngrams
+
+```python
+Works("W2023271753").ngrams()
 ```
 
 ### Get random
