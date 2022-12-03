@@ -23,7 +23,7 @@ PyAlex:
 - [x] Search filters
 - [x] Pagination
 - [ ] [Autocomplete endpoint](https://docs.openalex.org/api/autocomplete-endpoint)
-- [x] [N-grams](https://docs.openalex.org/api/get-n-grams)
+- [x] N-grams
 
 We aim to cover the entire API and we are looking for help. We are welcoming Pull Requests. 
 
@@ -188,7 +188,10 @@ See [Sort entity lists](https://docs.openalex.org/api/get-lists-of-entities/sort
 Works().sort(cited_by_count="desc").get()
 ```
 
-### Get ngrams
+### Get N-grams
+
+See [Get N-grams](https://docs.openalex.org/api/get-n-grams).
+
 
 ```python
 Works()["W2023271753"].ngrams()
