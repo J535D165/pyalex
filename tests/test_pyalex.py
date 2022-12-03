@@ -213,6 +213,7 @@ def test_code_examples():
 
     assert r_original["group_by"][0]["count"] == r[0]["count"]
 
+
 def test_serializable(tmpdir):
 
     with open(Path(tmpdir, "test.json"), "w") as f:
@@ -220,6 +221,7 @@ def test_serializable(tmpdir):
 
     with open(Path(tmpdir, "test.json")) as f:
         assert "W4238809453" in json.load(f)["id"]
+
 
 def test_ngrams_without_metadata():
 

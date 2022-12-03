@@ -21,10 +21,15 @@ from pyalex.api import invert_abstract
 
 __all__ = [
     "Works",
+    "Work",
     "Authors",
+    "Author",
     "Venues",
+    "Venue",
     "Institutions",
+    "Institution",
     "Concepts",
+    "Concept",
     "People",
     "Journals",
     "invert_abstract",

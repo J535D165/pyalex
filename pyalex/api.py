@@ -60,13 +60,13 @@ class Work(OpenAlexEntity):
             headers={"User-Agent": "pyalex/" + __version__, "email": EMAIL},
         )
         res.raise_for_status()
-        results = res.json()["ngrams"]
+        results = res.json()
 
         # return result and metadata
         if return_meta:
-            return results, res_json["meta"]
+            return results["ngrams"], results["meta"]
         else:
-            return results
+            return results["ngrams"]
 
 
 class Author(OpenAlexEntity):
