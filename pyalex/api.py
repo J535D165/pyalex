@@ -36,43 +36,31 @@ def invert_abstract(inv_index):
         return " ".join(map(lambda x: x[0], sorted(l, key=lambda x: x[1])))
 
 
-class BaseOpenAlex(object):
+class OpenAlexEntity(dict):
 
-    """Base class for OpenAlex objects."""
+    pass
 
-    def __init__(self, record_id=None, params={}):
-        # super(BaseOpenAlex, self).__init__()
 
-        self.record_id = record_id
-        self.url = None
-        self.params = params
+class Work(OpenAlexEntity):
+    """OpenAlex work object."""
 
-    @property
-    def _headers(self):
-        return {"User-Agent": "pyalex/" + __version__, "email": EMAIL}
+    def __getitem__(self, key):
 
-    def _parse_result(self, res):
+        if key == "abstract":
+            return invert_abstract(self["abstract_inverted_index"])
 
-        return res
+        return super().__getitem__(key)
 
-    def _get_single_object(self, return_meta=False, subset=None):
+    def ngrams(self, return_meta=False):
 
-        if self.record_id is None:
-            raise ValueError("No identifier available.")
+        openalex_id = self["id"].split("/")[-1]
 
-        url = self.url + "/" + self.record_id
-
-        if subset is not None:
-            url = url + "/" + subset
-
-        res = requests.get(url, headers=self._headers)
+        res = requests.get(
+            f"{OPENALEX_URL}/works/{openalex_id}/ngrams",
+            headers={"User-Agent": "pyalex/" + __version__, "email": EMAIL},
+        )
         res.raise_for_status()
-        res_json = res.json()
-
-        if subset is not None:
-            results = res_json[subset]
-        else:
-            results = self._parse_result(res_json)
+        results = res.json()["ngrams"]
 
         # return result and metadata
         if return_meta:
@@ -80,10 +68,46 @@ class BaseOpenAlex(object):
         else:
             return results
 
-    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
 
-        if self.record_id is not None:
-            return self._get_single_object(return_meta=return_meta)
+class Author(OpenAlexEntity):
+    pass
+
+
+class Venue(OpenAlexEntity):
+    pass
+
+
+class Institution(OpenAlexEntity):
+    pass
+
+
+class Concept(OpenAlexEntity):
+    pass
+
+
+class BaseOpenAlex(object):
+
+    """Base class for OpenAlex objects."""
+
+    url = None
+
+    def __init__(self, params={}):
+
+        self.params = params
+
+    def __getitem__(self, record_id):
+
+        url = self.url + "/" + record_id
+
+        res = requests.get(
+            url, headers={"User-Agent": "pyalex/" + __version__, "email": EMAIL}
+        )
+        res.raise_for_status()
+        res_json = res.json()
+
+        return self.obj(res_json)
+
+    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
 
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
@@ -103,7 +127,9 @@ class BaseOpenAlex(object):
 
         url = self.url + "?" + "&".join(l)
 
-        res = requests.get(url, headers=self._headers)
+        res = requests.get(
+            url, headers={"User-Agent": "pyalex/" + __version__, "email": EMAIL}
+        )
         res.raise_for_status()
         res_json = res.json()
 
@@ -111,7 +137,7 @@ class BaseOpenAlex(object):
         if "group-by" in self.params:
             results = res_json["group_by"]
         else:
-            results = self._parse_result(res_json["results"])
+            results = [self.obj(ent) for ent in res_json["results"]]
 
         # return result and metadata
         if return_meta:
@@ -121,8 +147,7 @@ class BaseOpenAlex(object):
 
     def random(self):
 
-        self.record_id = "random"
-        return self.get()
+        return self.__getitem__("random")
 
     def filter(self, **kwargs):
 
@@ -190,51 +215,33 @@ class BaseOpenAlex(object):
 
 
 class Works(BaseOpenAlex):
-    def __init__(self, *args, abstract=True, **kwargs):
-        super(Works, self).__init__(*args, **kwargs)
 
-        self.abstract = abstract
-        self.url = OPENALEX_URL + "/works"
-
-    def _parse_result(self, res):
-
-        if self.abstract and "abstract_inverted_index" in res:
-            res["abstract"] = invert_abstract(res["abstract_inverted_index"])
-            del res["abstract_inverted_index"]
-
-        return res
-
-    def ngrams(self, return_meta=False):
-
-        return self._get_single_object(return_meta=return_meta, subset="ngrams")
+    url = OPENALEX_URL + "/works"
+    obj = Work
 
 
 class Authors(BaseOpenAlex):
-    def __init__(self, *args, **kwargs):
-        super(Authors, self).__init__(*args, **kwargs)
 
-        self.url = OPENALEX_URL + "/authors"
+    url = OPENALEX_URL + "/authors"
+    obj = Author
 
 
 class Venues(BaseOpenAlex):
-    def __init__(self, *args, **kwargs):
-        super(Venues, self).__init__(*args, **kwargs)
 
-        self.url = OPENALEX_URL + "/venues"
+    url = OPENALEX_URL + "/venues"
+    obj = Venue
 
 
 class Institutions(BaseOpenAlex):
-    def __init__(self, *args, **kwargs):
-        super(Institutions, self).__init__(*args, **kwargs)
 
-        self.url = OPENALEX_URL + "/institutions"
+    url = OPENALEX_URL + "/institutions"
+    obj = Institution
 
 
 class Concepts(BaseOpenAlex):
-    def __init__(self, *args, **kwargs):
-        super(Concepts, self).__init__(*args, **kwargs)
 
-        self.url = OPENALEX_URL + "/concepts"
+    url = OPENALEX_URL + "/concepts"
+    obj = Concept
 
 
 # aliases

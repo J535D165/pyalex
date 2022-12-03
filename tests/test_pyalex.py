@@ -5,6 +5,7 @@ from pyalex import Authors
 from pyalex import Concepts
 from pyalex import Institutions
 from pyalex import Venues
+from pyalex import Work
 from pyalex import Works
 
 
@@ -39,30 +40,31 @@ def test_per_page():
 
 def test_W4238809453_works():
 
-    assert isinstance(Works("W4238809453").get(), dict)
+    assert isinstance(Works()["W4238809453"], Work)
+    assert Works()["W4238809453"]["doi"] == "https://doi.org/10.1001/jama.264.8.944b"
 
 
 def test_W4238809453_works_abstract():
 
-    assert Works("W4238809453").get()["abstract"] is None
+    assert Works()["W4238809453"]["abstract"] is None
 
 
 def test_W4238809453_works_no_abstract():
 
-    assert "abstract" not in Works("W4238809453", abstract=False).get()
+    assert "abstract" not in Works()["W4238809453"]
 
 
 def test_W3128349626_works_abstract():
 
-    w = Works("W3128349626").get()
+    w = Works()["W3128349626"]
 
     assert w["abstract"] is not None
-    assert "abstract_inverted_index" not in w
+    assert "abstract_inverted_index" in w
 
 
 def test_W3128349626_works_no_abstract():
 
-    w = Works("W3128349626", abstract=False).get()
+    w = Works()["W3128349626"]
 
     assert w["abstract_inverted_index"] is not None
     assert "abstract" not in w
@@ -174,7 +176,7 @@ def test_cursor_paging():
 def test_referenced_works():
 
     # the work to extract the referenced works of
-    w = Works("W2741809807").get()
+    w = Works()["W2741809807"]
 
     _, m = (
         Works()
@@ -211,13 +213,13 @@ def test_code_examples():
 
 def test_ngrams_without_metadata():
 
-    r = Works("W2023271753").ngrams(return_meta=False)
+    r = Works()["W2023271753"].ngrams(return_meta=False)
 
     assert len(r) == 1068
 
 
 def test_ngrams_with_metadata():
 
-    r, meta = Works("W2023271753").ngrams(return_meta=True)
+    r, meta = Works()["W2023271753"].ngrams(return_meta=True)
 
     assert meta["count"] == 1068

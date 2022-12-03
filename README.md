@@ -4,12 +4,17 @@
 
 # PyAlex
 
-PyAlex is a Python library for [OpenAlex](https://openalex.org/). OpenAlex is an index of hundreds of millions of interconnected scholarly papers, authors, institutions, and more. 
+PyAlex is a Python library for [OpenAlex](https://openalex.org/). OpenAlex is
+an index of hundreds of millions of interconnected scholarly papers, authors,
+institutions, and more.
 
-PyAlex follows the format of the [OpenAlex REST API](https://docs.openalex.org/). Not all components of PyAlex are documented, as
-the use of PyAlex is often intuitive when looking at the REST API documentation.
+PyAlex follows the format of the [OpenAlex REST API]
+(https://docs.openalex.org/). Not all components of PyAlex are documented, as
+the use of PyAlex is often intuitive when looking at the REST API
+documentation.
 
-The following features of the OpenAlex REST API are currently supported by PyAlex:
+The following features of the OpenAlex REST API are currently supported by
+PyAlex:
 
 - [x] Get single entities
 - [x] Filter entities
@@ -38,7 +43,8 @@ pip install pyalex
 
 ## Getting started
 
-PyAlex offers support for all [Entity Objects](https://docs.openalex.org/about-the-data#entity-objects).
+PyAlex offers support for all [Entity Objects]
+(https://docs.openalex.org/about-the-data#entity-objects).
 
 ```python
 from pyalex import Works, Authors, Venues, Institutions, Concepts
@@ -50,9 +56,7 @@ Get a single Work, Author, Venue, Institution or Concept from OpenAlex via the
 class
 
 ```python
-
-
-Works("W2741809807").get()
+Works()["W2741809807"]
 ```
 
 ### Get lists of entities
@@ -104,12 +108,13 @@ Works().search("fierce creatures").get()
 
 ### Paging
 
-OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/api#basic-paging) and [cursor paging](https://docs.openalex.org/api#cursor-paging). Both methods are supported by PyAlex, although it is STRONGLY ADVISED to use cursor paging. Cursor paging is easier to implement and less error-prone.
+OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/api#basic-paging) and [cursor paging](https://docs.openalex.org/api#cursor-paging). Both methods are supported by
+PyAlex, although it is STRONGLY ADVISED to use cursor paging. Cursor paging
+is easier to implement and less error-prone.
 
 #### Basic paging
 
-See limitations of [basic paging]
-(https://docs.openalex.org/api#basic-paging) on OpenAlex API documentation.
+See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) on OpenAlex API documentation.
 Cursor paging is probably a better solution to implement.
 
 ```python
@@ -186,7 +191,7 @@ Works().sort(cited_by_count="desc").get()
 ### Get ngrams
 
 ```python
-Works("W2023271753").ngrams()
+Works()["W2023271753"].ngrams()
 ```
 
 ### Get random
@@ -207,7 +212,7 @@ A list of awesome use cases of the OpenAlex dataset.
 from pyalex import Works
 
 # the work to extract the referenced works of
-w = Works("W2741809807").get()
+w = Works()["W2741809807"]
 
 Works().filter(openalex_id="|".join(w["referenced_works"])).get()
 ```
