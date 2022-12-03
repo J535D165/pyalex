@@ -2,12 +2,19 @@
 [flake8]
 max-line-length = 100
 ignore =
-	C901,  # too complex (fail on this in future)
-    E402,  # module level import not at top of file
-    E203,  # whitespace before ':'
-    W503,  # line break before binary operator
-    W504,  # line break after binary operator
-    I201,  # Missing newline between import groups.
-    E741,  # ambiguous variable name
+    # too complex (fail on this in future)
+    C901,
+    # module level import not at top of file
+    E402,
+    # whitespace before ':'
+    E203,
+    # line break before binary operator
+    W503,
+    # line break after binary operator
+    W504,
+    # Missing newline between import groups.
+    I201,
+    # ambiguous variable name
+    E741,
 
 application_import_names = pyalex
