@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="OpenAlex" src="https://github.com/J535D165/openalex/raw/main/openalex_repocard.svg">
+  <img alt="PyAlex - a Python wrapper for OpenAlex" src="https://github.com/J535D165/pyalex/raw/main/pyalex_repocard.svg">
 </p>
 
 # PyAlex
