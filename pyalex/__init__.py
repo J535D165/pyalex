@@ -33,5 +33,6 @@ __all__ = [
     "Concept",
     "People",
     "Journals",
+    "config",
     "invert_abstract",
 ]
