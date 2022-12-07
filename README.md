@@ -121,7 +121,7 @@ Works()
 
 ### Search entities
 
-[The search parameter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-parameter)
+OpenAlex reference: [The search parameter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-parameter)
 
 ```python
 Works().search("fierce creatures").get()
@@ -129,7 +129,7 @@ Works().search("fierce creatures").get()
 
 ### Search filter
 
-[The search filter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-filter)
+OpenAlex reference: [The search filter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-filter)
 
 ```python
 Authors().search_filter(display_name="einstein").get()
@@ -141,7 +141,7 @@ Works().search_filter(title="cubist").get()
 
 ### Sort entity lists
 
-See [Sort entity lists](https://docs.openalex.org/api/get-lists-of-entities/sort-entity-lists).
+OpenAlex reference: [Sort entity lists](https://docs.openalex.org/api/get-lists-of-entities/sort-entity-lists).
 
 ```python
 Works().sort(cited_by_count="desc").get()
@@ -149,7 +149,7 @@ Works().sort(cited_by_count="desc").get()
 
 ### Get N-grams
 
-See [Get N-grams](https://docs.openalex.org/api/get-n-grams).
+OpenAlex reference: [Get N-grams](https://docs.openalex.org/api/get-n-grams).
 
 
 ```python
@@ -162,6 +162,10 @@ Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex
 
 ```python
 Works().random()
+Authors().random()
+Venues().random()
+Institutions().random()
+Concepts().random()
 ```
 
 ### Get abstract
@@ -192,7 +196,7 @@ PyAlex, although cursor paging seems to be easier to implement and less error-pr
 
 #### Basic paging
 
-See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) on OpenAlex API documentation.
+See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) in the OpenAlex documentation.
 
 ```python
 from pyalex import Authors
