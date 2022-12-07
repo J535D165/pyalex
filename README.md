@@ -4,6 +4,8 @@
 
 # PyAlex
 
+![PyPI](https://img.shields.io/pypi/v/pyalex) 
+
 PyAlex is a Python library for [OpenAlex](https://openalex.org/). OpenAlex is
 an index of hundreds of millions of interconnected scholarly papers, authors,
 institutions, and more. OpenAlex offers a robust, open, and free [REST API](https://docs.openalex.org/) to extract, aggregate, or search scholarly data.
