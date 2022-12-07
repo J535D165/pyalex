@@ -127,68 +127,6 @@ Works()
 Works().search("fierce creatures").get()
 ```
 
-### Paging
-
-OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/api#basic-paging) and [cursor paging](https://docs.openalex.org/api#cursor-paging). Both methods are supported by
-PyAlex, although it is STRONGLY ADVISED to use cursor paging. Cursor paging
-is easier to implement and less error-prone.
-
-#### Basic paging
-
-See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) on OpenAlex API documentation.
-Cursor paging is probably a better solution to implement.
-
-```python
-from pyalex import Authors
-
-# example query
-query = Authors().search_filter(display_name="einstein")
-
-# set the page
-page = 1
-
-# store the results
-results = []
-
-# loop till page is None
-while page is not None:
-
-    # get the results
-    r, m = query.get(return_meta=True, per_page=200, page=page)
-
-    # results
-    results.append(r)
-
-    page = m["page"] + 1 if page is not None else None
-```
-
-#### Cursor paging
-
-```python
-from pyalex import Authors
-
-# example query
-query = Authors().search_filter(display_name="einstein")
-
-# set the next_cursor (to *)
-next_cursor = "*"
-
-# store the results
-results = []
-
-# loop till next_cursor is None
-while next_cursor is not None:
-
-    # get the results
-    r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
-
-    # results
-    results.extend(r)
-
-    # set the next cursor
-    next_cursor = m["next_cursor"]
-```
-
 ### Search filter
 
 [The search filter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-filter)
@@ -245,6 +183,67 @@ w["abstract"]
 ```
 
 Please respect the legal constraints when using this feature.
+
+
+### Paging
+
+OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/api#basic-paging) and [cursor paging](https://docs.openalex.org/api#cursor-paging). Both methods are supported by
+PyAlex, although cursor paging seems to be easier to implement and less error-prone.
+
+#### Basic paging
+
+See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) on OpenAlex API documentation.
+
+```python
+from pyalex import Authors
+
+# example query
+query = Authors().search_filter(display_name="einstein")
+
+# set the page
+page = 1
+
+# store the results
+results = []
+
+# loop till page is None
+while page is not None:
+
+    # get the results
+    r, m = query.get(return_meta=True, per_page=200, page=page)
+
+    # results
+    results.append(r)
+
+    page = m["page"] + 1 if page is not None else None
+```
+
+#### Cursor paging
+
+```python
+from pyalex import Authors
+
+# example query
+query = Authors().search_filter(display_name="einstein")
+
+# set the next_cursor (to *)
+next_cursor = "*"
+
+# store the results
+results = []
+
+# loop till next_cursor is None
+while next_cursor is not None:
+
+    # get the results
+    r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
+
+    # results
+    results.extend(r)
+
+    # set the next cursor
+    next_cursor = m["next_cursor"]
+```
 
 ## Code snippets
 
