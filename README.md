@@ -88,6 +88,26 @@ Authors()["A2887243803"]
 Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
 ```
 
+### Get abstract
+
+Only for Works. Request a work from the OpenAlex database:
+
+```python
+w = Works()["W3128349626"]
+```
+
+All attributes are available like documented under [Works](https://docs.openalex.org/about-the-data/work), as well as `abstract` (only if `abstract_inverted_index` is not None).
+
+```python
+w["abstract"]
+```
+
+```python
+'Abstract To help researchers conduct a systematic review or meta-analysis as efficiently and transparently as possible, we designed a tool to accelerate the step of screening titles and abstracts. For many tasks—including but not limited to systematic reviews and meta-analyses—the scientific literature needs to be checked systematically. Scholars and practitioners currently screen thousands of studies by hand to determine which studies to include in their review or meta-analysis. This is error prone and inefficient because of extremely imbalanced data: only a fraction of the screened studies is relevant. The future of systematic reviewing will be an interaction with machine learning algorithms to deal with the enormous increase of available text. We therefore developed an open source machine learning-aided pipeline applying active learning: ASReview. We demonstrate by means of simulation studies that active learning can yield far more efficient reviewing than manual reviewing while providing high quality. Furthermore, we describe the options of the free and open source research software and present the results from user experience tests. We invite the community to contribute to open source projects such as our own that provide measurable and reproducible improvements over current practice.'
+```
+
+Please respect the legal constraints when using this feature.
+
 #### Get random
 
 Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex.org/api/get-single-entities#random-entity).
@@ -113,7 +133,7 @@ print(meta)
 {'count': 65073, 'db_response_time_ms': 16, 'page': 1, 'per_page': 25}
 ```
 
-### Filter records
+#### Filter records
 
 ```python
 Works().filter(publication_year=2020, is_oa=True).get()
@@ -234,26 +254,6 @@ OpenAlex reference: [Get N-grams](https://docs.openalex.org/api/get-n-grams).
 ```python
 Works()["W2023271753"].ngrams()
 ```
-
-### Get abstract
-
-Request a work from the OpenAlex database:
-
-```python
-w = Works()["W3128349626"]
-```
-
-All attributes are available like documented under [Works](https://docs.openalex.org/about-the-data/work), as well as `abstract` (only if `abstract_inverted_index` is not None).
-
-```python
-w["abstract"]
-```
-
-```python
-'Abstract To help researchers conduct a systematic review or meta-analysis as efficiently and transparently as possible, we designed a tool to accelerate the step of screening titles and abstracts. For many tasks—including but not limited to systematic reviews and meta-analyses—the scientific literature needs to be checked systematically. Scholars and practitioners currently screen thousands of studies by hand to determine which studies to include in their review or meta-analysis. This is error prone and inefficient because of extremely imbalanced data: only a fraction of the screened studies is relevant. The future of systematic reviewing will be an interaction with machine learning algorithms to deal with the enormous increase of available text. We therefore developed an open source machine learning-aided pipeline applying active learning: ASReview. We demonstrate by means of simulation studies that active learning can yield far more efficient reviewing than manual reviewing while providing high quality. Furthermore, we describe the options of the free and open source research software and present the results from user experience tests. We invite the community to contribute to open source projects such as our own that provide measurable and reproducible improvements over current practice.'
-```
-
-Please respect the legal constraints when using this feature.
 
 
 ## Code snippets
