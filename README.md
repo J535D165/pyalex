@@ -6,9 +6,9 @@
 
 PyAlex is a Python library for [OpenAlex](https://openalex.org/). OpenAlex is
 an index of hundreds of millions of interconnected scholarly papers, authors,
-institutions, and more. OpenAlex offers a powerful, open, and free [REST API](https://docs.openalex.org/) to extract, aggregate, or search scholarly data.
-PyAlex is lightweight and thin Python interface to this API. PyAlex tries to
-stay as close as possible to the design of the orginal service.
+institutions, and more. OpenAlex offers a robust, open, and free [REST API](https://docs.openalex.org/) to extract, aggregate, or search scholarly data.
+PyAlex is a lightweight and thin Python interface to this API. PyAlex tries to
+stay as close as possible to the design of the original service.
 
 The following features of OpenAlex are currently supported by PyAlex:
 
@@ -21,11 +21,11 @@ The following features of OpenAlex are currently supported by PyAlex:
 - [ ] [Autocomplete endpoint](https://docs.openalex.org/api/autocomplete-endpoint)
 - [x] N-grams
 
-We aim to cover the entire API and we are looking for help. We are welcoming Pull Requests. 
+We aim to cover the entire API, and we are looking for help. We are welcoming Pull Requests.
 
 ## Key features
 
-- **Pipe operations** - PyAlex can handle multiple operations in a seqence. This allows the developer to write understandable queries. For examples, see [code snippets](#code-snippets).
+- **Pipe operations** - PyAlex can handle multiple operations in a sequence. This allows the developer to write understandable queries. For examples, see [code snippets](#code-snippets).
 - **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/about-the-data/work#abstract_inverted_index) due to legal constraints. PyAlex converts the inverted abstracts into [plaintext abstracts on the fly](#get-abstract).
 - **Permissive license** - OpenAlex data is CC0 licensed :raised_hands:. PyAlex is published under the MIT license.
 
@@ -81,6 +81,25 @@ Works()["W2741809807"]["open_access"]
 {'is_oa': True, 'oa_status': 'gold', 'oa_url': 'https://doi.org/10.7717/peerj.4375'}
 ```
 
+The previous works also for Authors, Venues, Institutions and Concepts
+
+```python
+Authors()["A2887243803"]
+Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
+```
+
+#### Get random
+
+Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex.org/api/get-single-entities#random-entity).
+
+```python
+Works().random()
+Authors().random()
+Venues().random()
+Institutions().random()
+Concepts().random()
+```
+
 ### Get lists of entities
 
 For list of enities, you can return the result as well as the metadata. By default, only the results are returned.
@@ -119,7 +138,7 @@ Works()
   .get()
 ```
 
-### Search entities
+#### Search entities
 
 OpenAlex reference: [The search parameter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-parameter)
 
@@ -127,7 +146,7 @@ OpenAlex reference: [The search parameter](https://docs.openalex.org/api/get-lis
 Works().search("fierce creatures").get()
 ```
 
-### Search filter
+#### Search filter
 
 OpenAlex reference: [The search filter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-filter)
 
@@ -139,7 +158,7 @@ Authors().search_filter(display_name="einstein").get()
 Works().search_filter(title="cubist").get()
 ```
 
-### Sort entity lists
+#### Sort entity lists
 
 OpenAlex reference: [Sort entity lists](https://docs.openalex.org/api/get-lists-of-entities/sort-entity-lists).
 
@@ -147,54 +166,12 @@ OpenAlex reference: [Sort entity lists](https://docs.openalex.org/api/get-lists-
 Works().sort(cited_by_count="desc").get()
 ```
 
-### Get N-grams
-
-OpenAlex reference: [Get N-grams](https://docs.openalex.org/api/get-n-grams).
-
-
-```python
-Works()["W2023271753"].ngrams()
-```
-
-### Get random
-
-Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex.org/api/get-single-entities#random-entity).
-
-```python
-Works().random()
-Authors().random()
-Venues().random()
-Institutions().random()
-Concepts().random()
-```
-
-### Get abstract
-
-Request a work from the OpenAlex database:
-
-```python
-w = Works()["W3128349626"]
-```
-
-All attributes are available like documented under [Works](https://docs.openalex.org/about-the-data/work), as well as `abstract` (only if `abstract_inverted_index` is not None).
-
-```python
-w["abstract"]
-```
-
-```python
-'Abstract To help researchers conduct a systematic review or meta-analysis as efficiently and transparently as possible, we designed a tool to accelerate the step of screening titles and abstracts. For many tasks—including but not limited to systematic reviews and meta-analyses—the scientific literature needs to be checked systematically. Scholars and practitioners currently screen thousands of studies by hand to determine which studies to include in their review or meta-analysis. This is error prone and inefficient because of extremely imbalanced data: only a fraction of the screened studies is relevant. The future of systematic reviewing will be an interaction with machine learning algorithms to deal with the enormous increase of available text. We therefore developed an open source machine learning-aided pipeline applying active learning: ASReview. We demonstrate by means of simulation studies that active learning can yield far more efficient reviewing than manual reviewing while providing high quality. Furthermore, we describe the options of the free and open source research software and present the results from user experience tests. We invite the community to contribute to open source projects such as our own that provide measurable and reproducible improvements over current practice.'
-```
-
-Please respect the legal constraints when using this feature.
-
-
-### Paging
+#### Paging
 
 OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/api#basic-paging) and [cursor paging](https://docs.openalex.org/api#cursor-paging). Both methods are supported by
 PyAlex, although cursor paging seems to be easier to implement and less error-prone.
 
-#### Basic paging
+##### Basic paging
 
 See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) in the OpenAlex documentation.
 
@@ -222,7 +199,7 @@ while page is not None:
     page = m["page"] + 1 if page is not None else None
 ```
 
-#### Cursor paging
+##### Cursor paging
 
 ```python
 from pyalex import Authors
@@ -248,6 +225,36 @@ while next_cursor is not None:
     # set the next cursor
     next_cursor = m["next_cursor"]
 ```
+
+### Get N-grams
+
+OpenAlex reference: [Get N-grams](https://docs.openalex.org/api/get-n-grams).
+
+
+```python
+Works()["W2023271753"].ngrams()
+```
+
+### Get abstract
+
+Request a work from the OpenAlex database:
+
+```python
+w = Works()["W3128349626"]
+```
+
+All attributes are available like documented under [Works](https://docs.openalex.org/about-the-data/work), as well as `abstract` (only if `abstract_inverted_index` is not None).
+
+```python
+w["abstract"]
+```
+
+```python
+'Abstract To help researchers conduct a systematic review or meta-analysis as efficiently and transparently as possible, we designed a tool to accelerate the step of screening titles and abstracts. For many tasks—including but not limited to systematic reviews and meta-analyses—the scientific literature needs to be checked systematically. Scholars and practitioners currently screen thousands of studies by hand to determine which studies to include in their review or meta-analysis. This is error prone and inefficient because of extremely imbalanced data: only a fraction of the screened studies is relevant. The future of systematic reviewing will be an interaction with machine learning algorithms to deal with the enormous increase of available text. We therefore developed an open source machine learning-aided pipeline applying active learning: ASReview. We demonstrate by means of simulation studies that active learning can yield far more efficient reviewing than manual reviewing while providing high quality. Furthermore, we describe the options of the free and open source research software and present the results from user experience tests. We invite the community to contribute to open source projects such as our own that provide measurable and reproducible improvements over current practice.'
+```
+
+Please respect the legal constraints when using this feature.
+
 
 ## Code snippets
 
