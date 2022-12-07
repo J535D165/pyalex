@@ -4,12 +4,20 @@ from pathlib import Path
 import pytest
 import requests
 
+import pyalex
 from pyalex import Authors
 from pyalex import Concepts
 from pyalex import Institutions
 from pyalex import Venues
 from pyalex import Work
 from pyalex import Works
+
+
+def test_config():
+
+    pyalex.config.email = "myemail@example.com"
+
+    assert pyalex.config.email == "myemail@example.com"
 
 
 def test_meta_entities():

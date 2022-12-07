@@ -45,6 +45,18 @@ PyAlex offers support for all [Entity Objects (Works, Authors, Venues, Instituti
 from pyalex import Works, Authors, Venues, Institutions, Concepts
 ```
 
+### The polite pool
+
+[The polite pool](https://docs.openalex.org/api#the-polite-pool) has much
+faster and more consistent response times. To get into the polite pool, you
+set your email:
+
+```python
+import pyalex
+
+pyalex.config.email = "mail@example.com"
+```
+
 ### Get single entity
 
 Get a single Work, Author, Venue, Institution or Concept from OpenAlex by the
@@ -62,7 +74,7 @@ The result is a `Work` object, which is very similar to a dictionary. Find the a
 For example, get the open access status:
 
 ```python
-pyalex.Works()["W2741809807"]["open_access"]
+Works()["W2741809807"]["open_access"]
 ```
 
 ```python
@@ -127,7 +139,7 @@ See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) on
 Cursor paging is probably a better solution to implement.
 
 ```python
-from openalex import Authors
+from pyalex import Authors
 
 # example query
 query = Authors().search_filter(display_name="einstein")
@@ -153,7 +165,7 @@ while page is not None:
 #### Cursor paging
 
 ```python
-from openalex import Authors
+from pyalex import Authors
 
 # example query
 query = Authors().search_filter(display_name="einstein")

@@ -17,6 +17,7 @@ from pyalex.api import Venue
 from pyalex.api import Venues
 from pyalex.api import Work
 from pyalex.api import Works
+from pyalex.api import config
 from pyalex.api import invert_abstract
 
 __all__ = [

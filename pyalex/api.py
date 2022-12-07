@@ -8,8 +8,16 @@ try:
 except ImportError:
     __version__ = "0.0.0"
 
-OPENALEX_URL = "https://api.openalex.org"
-EMAIL = None
+
+class AlexConfig(dict):
+    def __getattr__(self, key):
+        return super().__getitem__(key)
+
+    def __setattr__(self, key, value):
+        return super().__setitem__(key, value)
+
+
+config = AlexConfig(email=None, openalex_url="https://api.openalex.org")
 
 
 def _flatten_kv(k, v):
@@ -56,8 +64,8 @@ class Work(OpenAlexEntity):
         openalex_id = self["id"].split("/")[-1]
 
         res = requests.get(
-            f"{OPENALEX_URL}/works/{openalex_id}/ngrams",
-            headers={"User-Agent": "pyalex/" + __version__, "email": EMAIL},
+            f"{config.openalex_url}/works/{openalex_id}/ngrams",
+            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
         )
         res.raise_for_status()
         results = res.json()
@@ -100,7 +108,7 @@ class BaseOpenAlex(object):
         url = self.url + "/" + record_id
 
         res = requests.get(
-            url, headers={"User-Agent": "pyalex/" + __version__, "email": EMAIL}
+            url, headers={"User-Agent": "pyalex/" + __version__, "email": config.email}
         )
         res.raise_for_status()
         res_json = res.json()
@@ -128,7 +136,7 @@ class BaseOpenAlex(object):
         url = self.url + "?" + "&".join(l)
 
         res = requests.get(
-            url, headers={"User-Agent": "pyalex/" + __version__, "email": EMAIL}
+            url, headers={"User-Agent": "pyalex/" + __version__, "email": config.email}
         )
         res.raise_for_status()
         res_json = res.json()
@@ -216,31 +224,31 @@ class BaseOpenAlex(object):
 
 class Works(BaseOpenAlex):
 
-    url = OPENALEX_URL + "/works"
+    url = config.openalex_url + "/works"
     obj = Work
 
 
 class Authors(BaseOpenAlex):
 
-    url = OPENALEX_URL + "/authors"
+    url = config.openalex_url + "/authors"
     obj = Author
 
 
 class Venues(BaseOpenAlex):
 
-    url = OPENALEX_URL + "/venues"
+    url = config.openalex_url + "/venues"
     obj = Venue
 
 
 class Institutions(BaseOpenAlex):
 
-    url = OPENALEX_URL + "/institutions"
+    url = config.openalex_url + "/institutions"
     obj = Institution
 
 
 class Concepts(BaseOpenAlex):
 
-    url = OPENALEX_URL + "/concepts"
+    url = config.openalex_url + "/concepts"
     obj = Concept
 
 
