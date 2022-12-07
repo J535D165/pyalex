@@ -88,7 +88,19 @@ Authors()["A2887243803"]
 Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
 ```
 
-### Get abstract
+#### Get random
+
+Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex.org/api/get-single-entities#random-entity).
+
+```python
+Works().random()
+Authors().random()
+Venues().random()
+Institutions().random()
+Concepts().random()
+```
+
+#### Get abstract
 
 Only for Works. Request a work from the OpenAlex database:
 
@@ -107,18 +119,6 @@ w["abstract"]
 ```
 
 Please respect the legal constraints when using this feature.
-
-#### Get random
-
-Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex.org/api/get-single-entities#random-entity).
-
-```python
-Works().random()
-Authors().random()
-Venues().random()
-Institutions().random()
-Concepts().random()
-```
 
 ### Get lists of entities
 
