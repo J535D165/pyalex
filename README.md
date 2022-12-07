@@ -45,12 +45,16 @@ PyAlex offers support for all [Entity Objects (Works, Authors, Venues, Instituti
 from pyalex import Works, Authors, Venues, Institutions, Concepts
 ```
 
-### Get single entities
+### Get single entity
 
-Get a single Work, Author, Venue, Institution or Concept from OpenAlex.
+Get a single Work, Author, Venue, Institution or Concept from OpenAlex by the
+OpenAlex ID, or by DOI or ROR.
 
 ```python
 Works()["W2741809807"]
+
+# same as
+Works()["https://doi.org/10.7717/peerj.4375"]
 ```
 
 The result is a `Work` object, which is very similar to a dictionary. Find the avialable fields with `.keys()`.
