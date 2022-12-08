@@ -200,9 +200,8 @@ def test_basic_paging():
         r, m = query.get(return_meta=True, per_page=200, page=page)
 
         # results
-        results.append(r)
-
-        page = m["page"] + 1 if page is not None else None
+        results.extend(r)
+        page = None if len(r) == 0 else m["page"] + 1
 
     assert len(results) > 200
 
