@@ -195,8 +195,7 @@ PyAlex, although cursor paging seems to be easier to implement and less error-pr
 
 ##### Basic paging
 
-See limitations of [basic paging]
-(https://docs.openalex.org/api#basic-paging) in the OpenAlex documentation.
+See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) in the OpenAlex documentation.
 It's relatively easy to implement basic paging with PyAlex, however it is
 advised to use the built-in pager based on cursor paging.
 
