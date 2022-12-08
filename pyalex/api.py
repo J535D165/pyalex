@@ -93,6 +93,38 @@ class Concept(OpenAlexEntity):
     pass
 
 
+class CursorPaginator(object):
+    def __init__(self, alex_class=None, per_page=None, cursor="*", n_max=None):
+
+        self.alex_class = alex_class
+        self.per_page = per_page
+        self.cursor = cursor
+        self.n_max = n_max
+
+    def __iter__(self):
+
+        self.n = 0
+
+        return self
+
+    def __next__(self):
+
+        if self.n_max and self.n >= self.n_max:
+            raise StopIteration
+
+        r, m = self.alex_class.get(
+            return_meta=True, per_page=self.per_page, cursor=self.cursor
+        )
+
+        if m["next_cursor"] is None:
+            raise StopIteration
+
+        self.n = self.n + len(r)
+        self.cursor = m["next_cursor"]
+
+        return r
+
+
 class BaseOpenAlex(object):
 
     """Base class for OpenAlex objects."""
@@ -152,6 +184,10 @@ class BaseOpenAlex(object):
             return results, res_json["meta"]
         else:
             return results
+
+    def paginate(self, per_page=None, cursor="*", n_max=10000):
+
+        return CursorPaginator(self, per_page=per_page, cursor=cursor, n_max=n_max)
 
     def random(self):
 

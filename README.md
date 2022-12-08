@@ -195,57 +195,23 @@ PyAlex, although cursor paging seems to be easier to implement and less error-pr
 
 ##### Basic paging
 
-See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) in the OpenAlex documentation.
-
-```python
-from pyalex import Authors
-
-# example query
-query = Authors().search_filter(display_name="einstein")
-
-# set the page
-page = 1
-
-# store the results
-results = []
-
-# loop till page is None
-while page is not None:
-
-    # get the results
-    r, m = query.get(return_meta=True, per_page=200, page=page)
-
-    # results
-    results.append(r)
-
-    page = m["page"] + 1 if page is not None else None
-```
+See limitations of [basic paging]
+(https://docs.openalex.org/api#basic-paging) in the OpenAlex documentation.
+It's relatively easy to implement basic paging with PyAlex, however it is
+advised to use the built-in pager based on cursor paging.
 
 ##### Cursor paging
 
+Use `paginate()` for paging results. By default, `paginate`s argument `n_max`
+is set to 10000. Use `None` to retrieve all results.
+
 ```python
 from pyalex import Authors
 
-# example query
-query = Authors().search_filter(display_name="einstein")
+pager = Authors().search_filter(display_name="einstein").paginate(per_page=200)
 
-# set the next_cursor (to *)
-next_cursor = "*"
-
-# store the results
-results = []
-
-# loop till next_cursor is None
-while next_cursor is not None:
-
-    # get the results
-    r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
-
-    # results
-    results.extend(r)
-
-    # set the next cursor
-    next_cursor = m["next_cursor"]
+for page in pager:
+    print(len(page))
 ```
 
 ### Get N-grams

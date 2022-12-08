@@ -157,7 +157,7 @@ def test_search_filter():
     assert r["meta"]["count"] == m["count"]
 
 
-def test_cursor_paging():
+def test_cursor_by_hand():
 
     # example query
     query = Authors().search_filter(display_name="einstein")
@@ -170,8 +170,6 @@ def test_cursor_paging():
     # loop till next_cursor is None
     while next_cursor is not None:
 
-        print(next_cursor)
-
         # get the results
         r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
 
@@ -182,6 +180,72 @@ def test_cursor_paging():
         next_cursor = m["next_cursor"]
 
     assert len(results) > 200
+
+
+def test_basic_paging():
+
+    # example query
+    query = Authors().search_filter(display_name="einstein")
+
+    # set the page
+    page = 1
+
+    # store the results
+    results = []
+
+    # loop till page is None
+    while page is not None:
+
+        # get the results
+        r, m = query.get(return_meta=True, per_page=200, page=page)
+
+        # results
+        results.extend(r)
+        page = None if len(r) == 0 else m["page"] + 1
+
+    assert len(results) > 200
+
+
+def test_cursor_paging():
+
+    # example query
+    pager = Authors().search_filter(display_name="einstein").paginate(per_page=200)
+
+    for page in pager:
+
+        assert len(page) >= 1 and len(page) <= 200
+
+
+def test_cursor_paging_n_max():
+
+    # example query
+    pager = (
+        Authors()
+        .search_filter(display_name="einstein")
+        .paginate(per_page=200, n_max=400)
+    )
+
+    n = 0
+    for page in pager:
+
+        n = n + len(page)
+
+    assert n == 400
+
+
+def test_cursor_paging_n_max_none():
+
+    # example query
+    pager = (
+        Authors()
+        .search_filter(display_name="einstein")
+        .paginate(per_page=200, n_max=None)
+    )
+
+    n = 0
+    for page in pager:
+
+        n = n + len(page)
 
 
 def test_referenced_works():
