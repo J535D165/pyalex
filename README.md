@@ -124,14 +124,18 @@ Please respect the legal constraints when using this feature.
 
 ### Get lists of entities
 
+```python
+results = Works().get()
+```
+
 For list of enities, you can return the result as well as the metadata. By default, only the results are returned.
 
 ```python
 results, meta = Concepts().get(return_meta=True)
-print(meta)
 ```
 
 ```python
+print(meta)
 {'count': 65073, 'db_response_time_ms': 16, 'page': 1, 'per_page': 25}
 ```
 
@@ -235,7 +239,7 @@ from pyalex import Works
 # the work to extract the referenced works of
 w = Works()["W2741809807"]
 
-Works().filter(openalex_id="|".join(w["referenced_works"])).get()
+Works()[w["referenced_works"]]
 ```
 
 ### Dataset publications in the global south

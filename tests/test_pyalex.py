@@ -86,6 +86,14 @@ def test_random_works():
     assert isinstance(Works().random(), dict)
 
 
+def test_multi_works():
+
+    # the work to extract the referenced works of
+    w = Works()["W2741809807"]
+
+    assert len(Works()[w["referenced_works"]]) == 25
+
+
 def test_works_multifilter():
 
     r = requests.get(

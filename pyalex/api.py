@@ -135,7 +135,14 @@ class BaseOpenAlex(object):
 
         self.params = params
 
+    def _get_multi_items(self, record_list):
+
+        return self.filter(openalex_id="|".join(record_list)).get()
+
     def __getitem__(self, record_id):
+
+        if isinstance(record_id, list):
+            return self._get_multi_items(record_id)
 
         url = self.url + "/" + record_id
 
