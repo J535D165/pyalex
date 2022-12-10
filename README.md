@@ -242,6 +242,14 @@ w = Works()["W2741809807"]
 Works()[w["referenced_works"]]
 ```
 
+### Get works of a single author
+
+```python
+from pyalex import Works
+
+Works().filter(author={"id": "A2887243803"}).get()
+```
+
 ### Dataset publications in the global south
 
 ```python
