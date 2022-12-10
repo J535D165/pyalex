@@ -44,6 +44,10 @@ def invert_abstract(inv_index):
         return " ".join(map(lambda x: x[0], sorted(l, key=lambda x: x[1])))
 
 
+class QueryError(ValueError):
+    pass
+
+
 class OpenAlexEntity(dict):
 
     pass
@@ -139,6 +143,15 @@ class BaseOpenAlex(object):
 
         return self.filter(openalex_id="|".join(record_list)).get()
 
+    def __getattr__(self, key):
+
+        if key == "groupby":
+            raise AttributeError(
+                "object has no attribute 'groupby'. "
+                "Did you mean 'group_by'?")
+
+        return getattr(self, key)
+
     def __getitem__(self, record_id):
 
         if isinstance(record_id, list):
@@ -177,8 +190,12 @@ class BaseOpenAlex(object):
         res = requests.get(
             url, headers={"User-Agent": "pyalex/" + __version__, "email": config.email}
         )
-        res.raise_for_status()
         res_json = res.json()
+
+        if res.status_code == 403 and "query parameters" in res_json["error"]:
+            raise QueryError(res_json["message"])
+
+        res.raise_for_status()
 
         # group-by or results page
         if "group-by" in self.params:
