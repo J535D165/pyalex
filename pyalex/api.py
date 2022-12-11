@@ -152,7 +152,7 @@ class BaseOpenAlex(object):
 
         if key == "filter_search":
             raise AttributeError(
-                "object has no attribute 'filter_search'. "
+                "Object has no attribute 'filter_search'. "
                 "Did you mean 'search_filter'?")
 
         return getattr(self, key)
