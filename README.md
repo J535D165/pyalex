@@ -128,7 +128,7 @@ Please respect the legal constraints when using this feature.
 results = Works().get()
 ```
 
-For list of enities, you can return the result as well as the metadata. By default, only the results are returned.
+For list of entities, you can return the result as well as the metadata. By default, only the results are returned.
 
 ```python
 results, meta = Concepts().get(return_meta=True)
