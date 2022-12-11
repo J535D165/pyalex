@@ -4,7 +4,7 @@
 
 # PyAlex
 
-![PyPI](https://img.shields.io/pypi/v/pyalex) 
+![PyPI](https://img.shields.io/pypi/v/pyalex) [![DOI](https://zenodo.org/badge/557541347.svg)](https://zenodo.org/badge/latestdoi/557541347)
 
 PyAlex is a Python library for [OpenAlex](https://openalex.org/). OpenAlex is
 an index of hundreds of millions of interconnected scholarly papers, authors,
