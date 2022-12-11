@@ -276,19 +276,6 @@ Works() \
 
 ```
 
-Same, but with only for first authors
-
-```python
-from pyalex import Works
-
-Works() \
-  .filter(authorships={"institutions": {"ror": "04pp8hn57"},
-                       "author_position": "first"}) \
-  .sort(cited_by_count="desc") \
-  .get()
-
-```
-
 ## License
 
 [MIT](/LICENSE)
