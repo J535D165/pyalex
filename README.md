@@ -276,6 +276,13 @@ Works() \
 
 ```
 
+## Alternatives
+
+[Diophila](https://github.com/smierz/diophila) is a nice Python wrapper for OpenAlex. It takes a slightly
+different approach, especially interesting to those who don't like the pipe operations.
+
+R users can use [OpenAlexR](https://github.com/massimoaria/openalexR).
+
 ## License
 
 [MIT](/LICENSE)
