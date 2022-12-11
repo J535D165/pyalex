@@ -147,7 +147,7 @@ class BaseOpenAlex(object):
 
         if key == "groupby":
             raise AttributeError(
-                "object has no attribute 'groupby'. "
+                "Object has no attribute 'groupby'. "
                 "Did you mean 'group_by'?")
 
         if key == "filter_search":
