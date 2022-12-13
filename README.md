@@ -71,7 +71,7 @@ Works()["W2741809807"]
 Works()["https://doi.org/10.7717/peerj.4375"]
 ```
 
-The result is a `Work` object, which is very similar to a dictionary. Find the avialable fields with `.keys()`.
+The result is a `Work` object, which is very similar to a dictionary. Find the available fields with `.keys()`.
 
 For example, get the open access status:
 
@@ -153,10 +153,10 @@ Works().filter(publication_year=2020).filter(is_oa=True).get()
 
 #### Nested attribute filters
 
-Some attribute filers are nested and separated with dots by OpenAlex. For
+Some attribute filters are nested and separated with dots by OpenAlex. For
 example, filter on [`authorships.institutions.ror`](https://docs.openalex.org/api/get-lists-of-entities/filter-entity-lists#works-attribute-filters).
 
-In case of nested attribute filters, use a dict to built the query.
+In case of nested attribute filters, use a dict to build the query.
 
 ```python
 Works()
