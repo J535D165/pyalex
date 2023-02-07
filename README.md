@@ -219,7 +219,7 @@ for page in pager:
 
 ### Get N-grams
 
-OpenAlex reference: [Get N-grams](https://docs.openalex.org/api/get-n-grams).
+OpenAlex reference: [Get N-grams](https://docs.openalex.org/api-entities/works/get-n-grams).
 
 
 ```python
