@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,12 @@ from pyalex import Institutions
 from pyalex import Sources
 from pyalex import Work
 from pyalex import Works
+
+
+@pytest.fixture(autouse=True)
+def slow_down_tests():
+    yield
+    time.sleep(0.5)
 
 
 def test_config():
