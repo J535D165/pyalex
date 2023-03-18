@@ -8,7 +8,7 @@ import pyalex
 from pyalex import Authors
 from pyalex import Concepts
 from pyalex import Institutions
-from pyalex import Venues
+from pyalex import Sources
 from pyalex import Work
 from pyalex import Works
 
@@ -28,7 +28,7 @@ def test_meta_entities():
     assert "count" in m
     _, m = Institutions().get(return_meta=True)
     assert "count" in m
-    _, m = Venues().get(return_meta=True)
+    _, m = Sources().get(return_meta=True)
     assert "count" in m
     _, m = Works().get(return_meta=True)
     assert "count" in m
