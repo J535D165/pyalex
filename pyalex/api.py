@@ -1,4 +1,5 @@
 import logging
+import warnings
 from urllib.parse import quote_plus
 
 import requests
@@ -85,7 +86,7 @@ class Author(OpenAlexEntity):
     pass
 
 
-class Venue(OpenAlexEntity):
+class Source(OpenAlexEntity):
     pass
 
 
@@ -94,6 +95,18 @@ class Institution(OpenAlexEntity):
 
 
 class Concept(OpenAlexEntity):
+    pass
+
+
+class Publisher(OpenAlexEntity):
+    pass
+
+
+# deprecated
+
+
+class Venue(OpenAlexEntity):
+    warnings.warn("deprecated", DeprecationWarning, stacklevel=2)
     pass
 
 
@@ -147,13 +160,14 @@ class BaseOpenAlex(object):
 
         if key == "groupby":
             raise AttributeError(
-                "Object has no attribute 'groupby'. "
-                "Did you mean 'group_by'?")
+                "Object has no attribute 'groupby'. " "Did you mean 'group_by'?"
+            )
 
         if key == "filter_search":
             raise AttributeError(
                 "Object has no attribute 'filter_search'. "
-                "Did you mean 'search_filter'?")
+                "Did you mean 'search_filter'?"
+            )
 
         return getattr(self, key)
 
@@ -299,10 +313,10 @@ class Authors(BaseOpenAlex):
     obj = Author
 
 
-class Venues(BaseOpenAlex):
+class Sources(BaseOpenAlex):
 
-    url = config.openalex_url + "/venues"
-    obj = Venue
+    url = config.openalex_url + "/sources"
+    obj = Source
 
 
 class Institutions(BaseOpenAlex):
@@ -315,6 +329,28 @@ class Concepts(BaseOpenAlex):
 
     url = config.openalex_url + "/concepts"
     obj = Concept
+
+
+class Publishers(BaseOpenAlex):
+
+    url = config.openalex_url + "/publishers"
+    obj = Publisher
+
+
+# deprecated
+
+
+class Venues(BaseOpenAlex):
+
+    # warn about deprecation
+    warnings.warn(
+        "Venues is deprecated. Use Sources instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    url = config.openalex_url + "/venues"
+    obj = Venue
 
 
 # aliases

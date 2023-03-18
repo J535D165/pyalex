@@ -13,6 +13,10 @@ from pyalex.api import Institution
 from pyalex.api import Institutions
 from pyalex.api import Journals
 from pyalex.api import People
+from pyalex.api import Publisher
+from pyalex.api import Publishers
+from pyalex.api import Source
+from pyalex.api import Sources
 from pyalex.api import Venue
 from pyalex.api import Venues
 from pyalex.api import Work
@@ -25,6 +29,10 @@ __all__ = [
     "Work",
     "Authors",
     "Author",
+    "Sources",
+    "Source",
+    "Publishers",
+    "Publisher",
     "Venues",
     "Venue",
     "Institutions",

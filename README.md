@@ -44,7 +44,7 @@ pip install pyalex
 PyAlex offers support for all [Entity Objects (Works, Authors, Venues, Institutions, Concepts)](https://docs.openalex.org/about-the-data#entity-objects).
 
 ```python
-from pyalex import Works, Authors, Venues, Institutions, Concepts
+from pyalex import Works, Authors, Sources, Institutions, Concepts
 ```
 
 ### The polite pool
@@ -97,7 +97,7 @@ Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex
 ```python
 Works().random()
 Authors().random()
-Venues().random()
+Sources().random()
 Institutions().random()
 Concepts().random()
 ```
