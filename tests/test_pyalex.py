@@ -19,7 +19,7 @@ def test_config():
     assert pyalex.config.email == "myemail@example.com"
     assert pyalex.config.api_key is None
     pyalex.config.api_key = "my_api_key"
-    assert pyalex.config.api_key is "my_api_key"
+    assert pyalex.config.api_key == "my_api_key"
 
 
 def test_meta_entities():
