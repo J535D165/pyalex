@@ -20,6 +20,7 @@ def test_config():
     assert pyalex.config.api_key is None
     pyalex.config.api_key = "my_api_key"
     assert pyalex.config.api_key == "my_api_key"
+    pyalex.config.api_key = None
 
 
 def test_meta_entities():
