@@ -215,8 +215,7 @@ class BaseOpenAlex(object):
         )
         res_json = res.json()
 
-        # Removed "query parameters" in res_json["error"] as res_json["error"] is a boolean
-        if res.status_code == 403:
+        if res.status_code == 403 and "query parameters" in res_json["error"]:
             raise QueryError(res_json["message"])
 
         res.raise_for_status()
