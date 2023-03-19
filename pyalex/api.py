@@ -213,12 +213,15 @@ class BaseOpenAlex(object):
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
             params=params
         )
-        res_json = res.json()
 
-        if res.status_code == 403 and "query parameters" in res_json["error"]:
-            raise QueryError(res_json["message"])
-
+        # handle query errors
+        if res.status_code == 403:
+            res_json = res.json()
+            if isinstance(res_json["error"], str) and "query parameters" in res_json["error"]:
+                raise QueryError(res_json["message"])
         res.raise_for_status()
+
+        res_json = res.json()
 
         # group-by or results page
         if "group-by" in self.params:

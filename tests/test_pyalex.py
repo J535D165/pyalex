@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 import requests
+from requests import HTTPError
 
 import pyalex
 from pyalex import Authors
@@ -11,6 +12,7 @@ from pyalex import Institutions
 from pyalex import Sources
 from pyalex import Work
 from pyalex import Works
+from pyalex.api import QueryError
 
 
 def test_config():
@@ -84,6 +86,12 @@ def test_W3128349626_works_no_abstract():
     assert "abstract" not in w
 
 
+def test_work_error():
+
+    with pytest.raises(HTTPError):
+        Works()["NotAWorkID"]
+
+
 def test_random_works():
 
     assert isinstance(Works().random(), dict)
@@ -128,6 +136,12 @@ def test_works_multifilter_meta():
     )
 
     assert m1["count"] == m2["count"]
+
+
+def test_query_error():
+
+    with pytest.raises(QueryError):
+        Works().filter(publication_year_error=2020).get()
 
 
 def test_data_publications():
