@@ -14,10 +14,13 @@ from pyalex import Works
 
 
 def test_config():
-
     pyalex.config.email = "pyalex_github_unittests@example.com"
 
     assert pyalex.config.email == "pyalex_github_unittests@example.com"
+    assert pyalex.config.api_key is None
+    pyalex.config.api_key = "my_api_key"
+    assert pyalex.config.api_key == "my_api_key"
+    pyalex.config.api_key = None
 
 
 def test_meta_entities():

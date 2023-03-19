@@ -18,7 +18,7 @@ class AlexConfig(dict):
         return super().__setitem__(key, value)
 
 
-config = AlexConfig(email=None, openalex_url="https://api.openalex.org")
+config = AlexConfig(email=None, api_key=None, openalex_url="https://api.openalex.org")
 
 
 def _flatten_kv(k, v):
@@ -177,9 +177,11 @@ class BaseOpenAlex(object):
             return self._get_multi_items(record_id)
 
         url = self.url + "/" + record_id
-
+        params = {"api_key": config.api_key} if config.api_key else {}
         res = requests.get(
-            url, headers={"User-Agent": "pyalex/" + __version__, "email": config.email}
+            url,
+            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
+            params=params
         )
         res.raise_for_status()
         res_json = res.json()
@@ -205,9 +207,11 @@ class BaseOpenAlex(object):
                 l.append(k + "=" + quote_plus(str(v)))
 
         url = self.url + "?" + "&".join(l)
-
+        params = {"api_key": config.api_key} if config.api_key else {}
         res = requests.get(
-            url, headers={"User-Agent": "pyalex/" + __version__, "email": config.email}
+            url,
+            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
+            params=params
         )
         res_json = res.json()
 
