@@ -15,9 +15,9 @@ from pyalex import Works
 
 def test_config():
 
-    pyalex.config.email = "myemail@example.com"
+    pyalex.config.email = "pyalex_github_unittests@example.com"
 
-    assert pyalex.config.email == "myemail@example.com"
+    assert pyalex.config.email == "pyalex_github_unittests@example.com"
 
 
 def test_meta_entities():
