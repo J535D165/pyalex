@@ -8,15 +8,15 @@ import pyalex
 from pyalex import Authors
 from pyalex import Concepts
 from pyalex import Institutions
-from pyalex import Venues
+from pyalex import Sources
 from pyalex import Work
 from pyalex import Works
 
 
 def test_config():
-    pyalex.config.email = "myemail@example.com"
+    pyalex.config.email = "pyalex_github_unittests@example.com"
 
-    assert pyalex.config.email == "myemail@example.com"
+    assert pyalex.config.email == "pyalex_github_unittests@example.com"
     assert pyalex.config.api_key is None
     pyalex.config.api_key = "my_api_key"
     assert pyalex.config.api_key == "my_api_key"
@@ -31,7 +31,7 @@ def test_meta_entities():
     assert "count" in m
     _, m = Institutions().get(return_meta=True)
     assert "count" in m
-    _, m = Venues().get(return_meta=True)
+    _, m = Sources().get(return_meta=True)
     assert "count" in m
     _, m = Works().get(return_meta=True)
     assert "count" in m
