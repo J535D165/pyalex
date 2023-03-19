@@ -20,15 +20,16 @@ The following features of OpenAlex are currently supported by PyAlex:
 - [x] Group entities
 - [x] Search filters
 - [x] Pagination
-- [ ] [Autocomplete endpoint](https://docs.openalex.org/api/autocomplete-endpoint)
+- [ ] [Autocomplete endpoint](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities)
 - [x] N-grams
+- [x] Authentication
 
 We aim to cover the entire API, and we are looking for help. We are welcoming Pull Requests.
 
 ## Key features
 
 - **Pipe operations** - PyAlex can handle multiple operations in a sequence. This allows the developer to write understandable queries. For examples, see [code snippets](#code-snippets).
-- **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/about-the-data/work#abstract_inverted_index) due to legal constraints. PyAlex converts the inverted abstracts into [plaintext abstracts on the fly](#get-abstract).
+- **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/api-entities/works/work-object#abstract_inverted_index) due to legal constraints. PyAlex converts the inverted abstracts into [plaintext abstracts on the fly](#get-abstract).
 - **Permissive license** - OpenAlex data is CC0 licensed :raised_hands:. PyAlex is published under the MIT license.
 
 ## Installation
@@ -41,7 +42,7 @@ pip install pyalex
 
 ## Getting started
 
-PyAlex offers support for all [Entity Objects (Works, Authors, Venues, Institutions, Concepts)](https://docs.openalex.org/about-the-data#entity-objects).
+PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), and [Publishers](https://docs.openalex.org/api-entities/publishers).
 
 ```python
 from pyalex import Works, Authors, Sources, Institutions, Concepts
@@ -49,7 +50,7 @@ from pyalex import Works, Authors, Sources, Institutions, Concepts
 
 ### The polite pool
 
-[The polite pool](https://docs.openalex.org/api#the-polite-pool) has much
+[The polite pool](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication#the-polite-pool) has much
 faster and more consistent response times. To get into the polite pool, you
 set your email:
 
@@ -61,7 +62,7 @@ pyalex.config.email = "mail@example.com"
 
 ### Get single entity
 
-Get a single Work, Author, Venue, Institution or Concept from OpenAlex by the
+Get a single Work, Author, Source, Institution, Concept, or Publisher from OpenAlex by the
 OpenAlex ID, or by DOI or ROR.
 
 ```python
@@ -92,7 +93,7 @@ Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
 
 #### Get random
 
-Get a [random Work, Author, Venue, Institution or Concept](https://docs.openalex.org/api/get-single-entities#random-entity).
+Get a [random Work, Author, Source, Institution, Concept, or Publisher](https://docs.openalex.org/how-to-use-the-api/get-single-entities/random-result).
 
 ```python
 Works().random()
@@ -110,7 +111,7 @@ Only for Works. Request a work from the OpenAlex database:
 w = Works()["W3128349626"]
 ```
 
-All attributes are available like documented under [Works](https://docs.openalex.org/about-the-data/work), as well as `abstract` (only if `abstract_inverted_index` is not None).
+All attributes are available like documented under [Works](https://docs.openalex.org/api-entities/works/work-object), as well as `abstract` (only if `abstract_inverted_index` is not None).
 
 ```python
 w["abstract"]
@@ -154,7 +155,7 @@ Works().filter(publication_year=2020).filter(is_oa=True).get()
 #### Nested attribute filters
 
 Some attribute filters are nested and separated with dots by OpenAlex. For
-example, filter on [`authorships.institutions.ror`](https://docs.openalex.org/api/get-lists-of-entities/filter-entity-lists#works-attribute-filters).
+example, filter on [`authorships.institutions.ror`](https://docs.openalex.org/api-entities/works/filter-works).
 
 In case of nested attribute filters, use a dict to build the query.
 
@@ -166,7 +167,7 @@ Works()
 
 #### Search entities
 
-OpenAlex reference: [The search parameter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-parameter)
+OpenAlex reference: [The search parameter](https://docs.openalex.org/api-entities/works/search-works)
 
 ```python
 Works().search("fierce creatures").get()
@@ -174,7 +175,7 @@ Works().search("fierce creatures").get()
 
 #### Search filter
 
-OpenAlex reference: [The search filter](https://docs.openalex.org/api/get-lists-of-entities/search-entity-lists#the-search-filter)
+OpenAlex reference: [The search filter](https://docs.openalex.org/api-entities/works/search-works#search-a-specific-field)
 
 ```python
 Authors().search_filter(display_name="einstein").get()
@@ -186,7 +187,7 @@ Works().search_filter(title="cubist").get()
 
 #### Sort entity lists
 
-OpenAlex reference: [Sort entity lists](https://docs.openalex.org/api/get-lists-of-entities/sort-entity-lists).
+OpenAlex reference: [Sort entity lists](https://docs.openalex.org/api-entities/works/get-lists-of-works#page-and-sort-works).
 
 ```python
 Works().sort(cited_by_count="desc").get()
@@ -194,12 +195,12 @@ Works().sort(cited_by_count="desc").get()
 
 #### Paging
 
-OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/api#basic-paging) and [cursor paging](https://docs.openalex.org/api#cursor-paging). Both methods are supported by
+OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#basic-paging) and [cursor paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#cursor-paging). Both methods are supported by
 PyAlex, although cursor paging seems to be easier to implement and less error-prone.
 
 ##### Basic paging
 
-See limitations of [basic paging](https://docs.openalex.org/api#basic-paging) in the OpenAlex documentation.
+See limitations of [basic paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#basic-paging) in the OpenAlex documentation.
 It's relatively easy to implement basic paging with PyAlex, however it is
 advised to use the built-in pager based on cursor paging.
 
@@ -274,6 +275,18 @@ Works() \
   .sort(cited_by_count="desc") \
   .get()
 
+```
+
+## Experimental 
+
+### Authentication
+
+OpenAlex experiments with authenticated requests at the moment. Authenticate your requests with
+
+```python
+import pyalex
+
+pyalex.config.api_key = "<MY_KEY>"
 ```
 
 ## Alternatives
