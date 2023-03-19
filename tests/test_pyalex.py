@@ -9,6 +9,7 @@ import pyalex
 from pyalex import Authors
 from pyalex import Concepts
 from pyalex import Institutions
+from pyalex import Publishers
 from pyalex import Sources
 from pyalex import Work
 from pyalex import Works
@@ -332,3 +333,8 @@ def test_ngrams_with_metadata():
     r, meta = Works()["W2023271753"].ngrams(return_meta=True)
 
     assert meta["count"] == 1068
+
+
+def test_random_publishers():
+
+    assert isinstance(Publishers().random(), dict)

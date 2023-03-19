@@ -104,10 +104,16 @@ class Publisher(OpenAlexEntity):
 
 # deprecated
 
+def Venue(*args, **kwargs):
 
-class Venue(OpenAlexEntity):
-    warnings.warn("deprecated", DeprecationWarning, stacklevel=2)
-    pass
+    # warn about deprecation
+    warnings.warn(
+        "Venue is deprecated. Use Sources instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    return Source(*args, **kwargs)
 
 
 class CursorPaginator(object):
@@ -346,8 +352,7 @@ class Publishers(BaseOpenAlex):
 
 # deprecated
 
-
-class Venues(BaseOpenAlex):
+def Venues(*args, **kwargs):
 
     # warn about deprecation
     warnings.warn(
@@ -356,10 +361,9 @@ class Venues(BaseOpenAlex):
         stacklevel=2,
     )
 
-    url = config.openalex_url + "/venues"
-    obj = Venue
+    return Sources(*args, **kwargs)
 
 
 # aliases
 People = Authors
-Journals = Venues
+Journals = Sources
