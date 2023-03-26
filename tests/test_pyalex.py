@@ -129,6 +129,16 @@ def test_works_multifilter():
     # assert r["meta"]["count"] == c["count"]
 
 
+def test_works_url():
+
+    url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
+
+    assert url == Works().filter(publication_year=2020, is_oa=True).url
+    assert url == Works().filter(publication_year=2020).filter(is_oa=True).url
+
+    assert Works().url == "https://api.openalex.org/works"
+
+
 def test_works_multifilter_meta():
 
     _, m1 = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)

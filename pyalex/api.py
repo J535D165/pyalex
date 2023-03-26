@@ -152,8 +152,6 @@ class BaseOpenAlex(object):
 
     """Base class for OpenAlex objects."""
 
-    url = None
-
     def __init__(self, params={}):
 
         self.params = params
@@ -182,7 +180,7 @@ class BaseOpenAlex(object):
         if isinstance(record_id, list):
             return self._get_multi_items(record_id)
 
-        url = self.url + "/" + record_id
+        url = self.url_collection + "/" + record_id
         params = {"api_key": config.api_key} if config.api_key else {}
         res = requests.get(
             url,
@@ -194,14 +192,8 @@ class BaseOpenAlex(object):
 
         return self.obj(res_json)
 
-    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
-
-        if per_page is not None and (per_page < 1 or per_page > 200):
-            raise ValueError("per_page should be a number between 1 and 200.")
-
-        self.params["per-page"] = per_page
-        self.params["page"] = page
-        self.params["cursor"] = cursor
+    @property
+    def url(self):
 
         l = []
         for k, v in self.params.items():
@@ -212,10 +204,23 @@ class BaseOpenAlex(object):
             else:
                 l.append(k + "=" + quote_plus(str(v)))
 
-        url = self.url + "?" + "&".join(l)
+        if l:
+            return self.url_collection + "?" + "&".join(l)
+
+        return self.url_collection
+
+    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
+
+        if per_page is not None and (per_page < 1 or per_page > 200):
+            raise ValueError("per_page should be a number between 1 and 200.")
+
+        self.params["per-page"] = per_page
+        self.params["page"] = page
+        self.params["cursor"] = cursor
+
         params = {"api_key": config.api_key} if config.api_key else {}
         res = requests.get(
-            url,
+            self.url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
             params=params
         )
@@ -316,37 +321,37 @@ class BaseOpenAlex(object):
 
 class Works(BaseOpenAlex):
 
-    url = config.openalex_url + "/works"
+    url_collection = config.openalex_url + "/works"
     obj = Work
 
 
 class Authors(BaseOpenAlex):
 
-    url = config.openalex_url + "/authors"
+    url_collection = config.openalex_url + "/authors"
     obj = Author
 
 
 class Sources(BaseOpenAlex):
 
-    url = config.openalex_url + "/sources"
+    url_collection = config.openalex_url + "/sources"
     obj = Source
 
 
 class Institutions(BaseOpenAlex):
 
-    url = config.openalex_url + "/institutions"
+    url_collection = config.openalex_url + "/institutions"
     obj = Institution
 
 
 class Concepts(BaseOpenAlex):
 
-    url = config.openalex_url + "/concepts"
+    url_collection = config.openalex_url + "/concepts"
     obj = Concept
 
 
 class Publishers(BaseOpenAlex):
 
-    url = config.openalex_url + "/publishers"
+    url_collection = config.openalex_url + "/publishers"
     obj = Publisher
 
 
