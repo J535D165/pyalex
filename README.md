@@ -193,6 +193,37 @@ OpenAlex reference: [Sort entity lists](https://docs.openalex.org/api-entities/w
 Works().sort(cited_by_count="desc").get()
 ```
 
+#### Logical expressions
+
+OpenAlex reference: [Logical expressions](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/filter-entity-lists#logical-expressions)
+
+Inequality:
+
+```python
+Sources().filter(works_count=">1000").get()
+```
+
+Negation (NOT):
+
+```python
+Institutions().filter(country_code="!us").get()
+```
+
+Intersection (AND):
+
+```python
+Works().filter(institutions={"country_code": ["fr", "gb"]}).get()
+
+# same
+Works().filter(institutions={"country_code": "fr"}).filter(institutions={"country_code": "gb"}).get()
+```
+
+Addition (OR):
+
+```python
+Works().filter(institutions={"country_code": "fr|gb"}).get()
+```
+
 #### Paging
 
 OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#basic-paging) and [cursor paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#cursor-paging). Both methods are supported by
