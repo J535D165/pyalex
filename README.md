@@ -19,6 +19,8 @@ The following features of OpenAlex are currently supported by PyAlex:
 - [x] Search entities
 - [x] Group entities
 - [x] Search filters
+- [x] Select fields
+- [x] Sample
 - [x] Pagination
 - [ ] [Autocomplete endpoint](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities)
 - [x] N-grams
@@ -191,6 +193,22 @@ OpenAlex reference: [Sort entity lists](https://docs.openalex.org/api-entities/w
 
 ```python
 Works().sort(cited_by_count="desc").get()
+```
+
+#### Select
+
+OpenAlex reference: [Select fields](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/select-fields).
+
+```python
+Works().filter(publication_year=2020, is_oa=True).select(["id", "doi"]).get()
+```
+
+#### Sample
+
+OpenAlex reference: [Sample entity lists](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/sample-entity-lists).
+
+```python
+Works().sample(100, seed=535).get()
 ```
 
 #### Logical expressions
