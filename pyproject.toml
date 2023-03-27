@@ -1,6 +1,6 @@
 [project]
 name = "pyalex"
-description = "One downloader for many scientific data and code repositories!"
+description = "Python interface to the OpenAlex database"
 authors = [
     { name = "Jonathan de Bruin", email = "jonathandebruinos@gmail.com" }
 ]
