@@ -337,6 +337,7 @@ class BaseOpenAlex(object):
         self._add_params("seed", seed)
         return self
 
+
 class Works(BaseOpenAlex):
 
     url_collection = config.openalex_url + "/works"
