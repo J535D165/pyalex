@@ -21,21 +21,55 @@ class AlexConfig(dict):
 config = AlexConfig(email=None, api_key=None, openalex_url="https://api.openalex.org")
 
 
-def _flatten_kv(k, v):
+def _flatten_kv(d, prefix=""):
 
-    if isinstance(v, dict):
+    if isinstance(d, dict):
 
-        if len(v.keys()) > 1:
-            raise ValueError()
+        t = []
+        for k, v in d.items():
+            if isinstance(v, list):
+                t.extend([f"{prefix}.{k}:{i}" for i in v])
+            else:
+                new_prefix = f"{prefix}.{k}" if prefix else f"{k}"
+                x = _flatten_kv(v, prefix=new_prefix)
+                t.append(x)
 
-        k_0 = list(v.keys())[0]
-        return str(k) + "." + _flatten_kv(k_0, v[k_0])
+        return ",".join(t)
     else:
 
         # workaround for bug https://groups.google.com/u/1/g/openalex-users/c/t46RWnzZaXc
-        v = str(v).lower() if isinstance(v, bool) else v
+        d = str(d).lower() if isinstance(d, bool) else d
 
-        return str(k) + ":" + str(v)
+        return f"{prefix}:{d}"
+
+
+def _params_merge(params, add_params):
+
+    for k, v in add_params.items():
+        if (
+            k in params
+            and isinstance(params[k], dict)
+            and isinstance(add_params[k], dict)
+        ):
+            _params_merge(params[k], add_params[k])
+        elif (
+            k in params
+            and not isinstance(params[k], list)
+            and isinstance(add_params[k], list)
+        ):
+            # example: params="a" and add_params=["b", "c"]
+            params[k] = [params[k]] + add_params[k]
+        elif (
+            k in params
+            and isinstance(params[k], list)
+            and not isinstance(add_params[k], list)
+        ):
+            # example: params=["b", "c"] and add_params="a"
+            params[k] = params[k] + [add_params[k]]
+        elif k in params:
+            params[k] = [params[k], add_params[k]]
+        else:
+            params[k] = add_params[k]
 
 
 def invert_abstract(inv_index):
@@ -104,6 +138,7 @@ class Publisher(OpenAlexEntity):
 
 # deprecated
 
+
 def Venue(*args, **kwargs):
 
     # warn about deprecation
@@ -152,7 +187,7 @@ class BaseOpenAlex(object):
 
     """Base class for OpenAlex objects."""
 
-    def __init__(self, params={}):
+    def __init__(self, params=None):
 
         self.params = params
 
@@ -185,7 +220,7 @@ class BaseOpenAlex(object):
         res = requests.get(
             url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-            params=params
+            params=params,
         )
         res.raise_for_status()
         res_json = res.json()
@@ -195,10 +230,13 @@ class BaseOpenAlex(object):
     @property
     def url(self):
 
+        if not self.params:
+            return self.url_collection
+
         l = []
         for k, v in self.params.items():
             if k in ["filter", "sort"]:
-                l.append(k + "=" + ",".join(_flatten_kv(k, d) for k, d in v.items()))
+                l.append(k + "=" + _flatten_kv(v))
             elif v is None:
                 pass
             else:
@@ -214,21 +252,24 @@ class BaseOpenAlex(object):
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
 
-        self.params["per-page"] = per_page
-        self.params["page"] = page
-        self.params["cursor"] = cursor
+        self._add_params("per-page", per_page)
+        self._add_params("page", page)
+        self._add_params("cursor", cursor)
 
         params = {"api_key": config.api_key} if config.api_key else {}
         res = requests.get(
             self.url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-            params=params
+            params=params,
         )
 
         # handle query errors
         if res.status_code == 403:
             res_json = res.json()
-            if isinstance(res_json["error"], str) and "query parameters" in res_json["error"]:
+            if (
+                isinstance(res_json["error"], str)
+                and "query parameters" in res_json["error"]
+            ):
                 raise QueryError(res_json["message"])
         res.raise_for_status()
 
@@ -254,68 +295,40 @@ class BaseOpenAlex(object):
 
         return self.__getitem__("random")
 
+    def _add_params(self, argument, new_params):
+
+        if self.params is None:
+            self.params = {argument: new_params}
+        elif argument in self.params and isinstance(self.params[argument], dict):
+            _params_merge(self.params[argument], new_params)
+        else:
+            self.params[argument] = new_params
+
+        logging.debug("Params updated:", self.params)
+
     def filter(self, **kwargs):
 
-        p = self.params.copy()
-
-        if "filter" in p:
-            p["filter"] = {**p["filter"], **kwargs}
-        else:
-            p["filter"] = kwargs
-
-        self.params = p
-        logging.debug("Params updated:", p)
-
+        self._add_params("filter", kwargs)
         return self
 
     def search_filter(self, **kwargs):
 
-        search_kwargs = {f"{k}.search": v for k, v in kwargs.items()}
-
-        p = self.params.copy()
-
-        if "filter" in p:
-            p["filter"] = {**p["filter"], **search_kwargs}
-        else:
-            p["filter"] = search_kwargs
-
-        self.params = p
-        logging.debug("Params updated:", p)
-
+        self._add_params("filter", {f"{k}.search": v for k, v in kwargs.items()})
         return self
 
     def sort(self, **kwargs):
 
-        p = self.params.copy()
-
-        if "sort" in p:
-            p["sort"] = {**p["sort"], **kwargs}
-        else:
-            p["sort"] = kwargs
-
-        self.params = p
-        logging.debug("Params updated:", p)
-
+        self._add_params("sort", kwargs)
         return self
 
     def group_by(self, group_key):
 
-        p = self.params.copy()
-        p["group-by"] = group_key
-        self.params = p
-
-        logging.debug("Params updated:", p)
-
+        self._add_params("group-by", group_key)
         return self
 
     def search(self, s):
 
-        p = self.params.copy()
-        p["search"] = s
-        self.params = p
-
-        logging.debug("Params updated:", p)
-
+        self._add_params("search", s)
         return self
 
 
@@ -356,6 +369,7 @@ class Publishers(BaseOpenAlex):
 
 
 # deprecated
+
 
 def Venues(*args, **kwargs):
 
