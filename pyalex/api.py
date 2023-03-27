@@ -235,10 +235,14 @@ class BaseOpenAlex(object):
 
         l = []
         for k, v in self.params.items():
-            if k in ["filter", "sort"]:
-                l.append(k + "=" + _flatten_kv(v))
-            elif v is None:
+
+            if v is None:
                 pass
+            elif isinstance(v, list):
+                v_quote = [quote_plus(q) for q in v]
+                l.append(k + "=" + ",".join(v_quote))
+            elif k in ["filter", "sort"]:
+                l.append(k + "=" + _flatten_kv(v))
             else:
                 l.append(k + "=" + quote_plus(str(v)))
 
@@ -335,6 +339,11 @@ class BaseOpenAlex(object):
 
         self._add_params("sample", n)
         self._add_params("seed", seed)
+        return self
+
+    def select(self, s):
+
+        self._add_params("select", s)
         return self
 
 

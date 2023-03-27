@@ -395,3 +395,9 @@ def test_sample_seed():
         url
         == Works().filter(publication_year=2020, is_oa=True).sample(50, seed=535).url
     )
+
+
+def test_subset():
+
+    url = "https://api.openalex.org/works?select=id,doi,display_name"
+    assert url == Works().select(["id", "doi", "display_name"]).url
