@@ -45,7 +45,7 @@ pip install pyalex
 PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), and [Publishers](https://docs.openalex.org/api-entities/publishers).
 
 ```python
-from pyalex import Works, Authors, Sources, Institutions, Concepts
+from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers
 ```
 
 ### The polite pool
