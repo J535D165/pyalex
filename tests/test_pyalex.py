@@ -348,3 +348,35 @@ def test_ngrams_with_metadata():
 def test_random_publishers():
 
     assert isinstance(Publishers().random(), dict)
+
+
+def test_and_operator():
+
+    # https://github.com/J535D165/pyalex/issues/11
+    url = "https://api.openalex.org/works?filter=institutions.country_code:tw,institutions.country_code:hk,institutions.country_code:us,publication_year:2022"  # noqa
+
+    assert (
+        url
+        == Works()
+        .filter(
+            institutions={"country_code": ["tw", "hk", "us"]}, publication_year=2022
+        )
+        .url
+    )
+    assert (
+        url
+        == Works()
+        .filter(institutions={"country_code": "tw"})
+        .filter(institutions={"country_code": "hk"})
+        .filter(institutions={"country_code": "us"})
+        .filter(publication_year=2022)
+        .url
+    )
+    assert (
+        url
+        == Works()
+        .filter(institutions={"country_code": ["tw", "hk"]})
+        .filter(institutions={"country_code": "us"})
+        .filter(publication_year=2022)
+        .url
+    )
