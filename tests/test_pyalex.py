@@ -380,3 +380,18 @@ def test_and_operator():
         .filter(publication_year=2022)
         .url
     )
+
+
+def test_sample():
+
+    url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true&sample=50"
+    assert url == Works().filter(publication_year=2020, is_oa=True).sample(50).url
+
+
+def test_sample_seed():
+
+    url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true&sample=50&seed=535"  # noqa
+    assert (
+        url
+        == Works().filter(publication_year=2020, is_oa=True).sample(50, seed=535).url
+    )

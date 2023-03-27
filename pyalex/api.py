@@ -331,6 +331,12 @@ class BaseOpenAlex(object):
         self._add_params("search", s)
         return self
 
+    def sample(self, n, seed=None):
+
+        self._add_params("sample", n)
+        self._add_params("seed", seed)
+        return self
+
 
 class Works(BaseOpenAlex):
 
