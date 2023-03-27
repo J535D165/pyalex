@@ -346,6 +346,7 @@ class BaseOpenAlex(object):
         self._add_params("select", s)
         return self
 
+
 class Works(BaseOpenAlex):
 
     url_collection = config.openalex_url + "/works"
