@@ -31,7 +31,7 @@ We aim to cover the entire API, and we are looking for help. We are welcoming Pu
 ## Key features
 
 - **Pipe operations** - PyAlex can handle multiple operations in a sequence. This allows the developer to write understandable queries. For examples, see [code snippets](#code-snippets).
-- **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/api-entities/works/work-object#abstract_inverted_index) due to legal constraints. PyAlex converts the inverted abstracts into [plaintext abstracts on the fly](#get-abstract).
+- **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/api-entities/works/work-object#abstract_inverted_index) due to legal constraints. PyAlex can convert the inverted abstracts into [plaintext abstracts on the fly](#get-abstract).
 - **Permissive license** - OpenAlex data is CC0 licensed :raised_hands:. PyAlex is published under the MIT license.
 
 ## Installation
@@ -113,7 +113,7 @@ Only for Works. Request a work from the OpenAlex database:
 w = Works()["W3128349626"]
 ```
 
-All attributes are available like documented under [Works](https://docs.openalex.org/api-entities/works/work-object), as well as `abstract` (only if `abstract_inverted_index` is not None).
+All attributes are available like documented under [Works](https://docs.openalex.org/api-entities/works/work-object), as well as `abstract` (only if `abstract_inverted_index` is not None). This abstract made human readable is create on the fly. 
 
 ```python
 w["abstract"]
