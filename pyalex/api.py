@@ -45,7 +45,7 @@ def _flatten_kv(d, prefix=""):
 
 def _params_merge(params, add_params):
 
-    for k, v in add_params.items():
+    for k, _v in add_params.items():
         if (
             k in params
             and isinstance(params[k], dict)
@@ -75,8 +75,8 @@ def _params_merge(params, add_params):
 def invert_abstract(inv_index):
 
     if inv_index is not None:
-        l = [(w, p) for w, pos in inv_index.items() for p in pos]
-        return " ".join(map(lambda x: x[0], sorted(l, key=lambda x: x[1])))
+        l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
+        return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
 
 
 class QueryError(ValueError):
@@ -151,7 +151,7 @@ def Venue(*args, **kwargs):
     return Source(*args, **kwargs)
 
 
-class CursorPaginator(object):
+class CursorPaginator:
     def __init__(self, alex_class=None, per_page=None, cursor="*", n_max=None):
 
         self.alex_class = alex_class
@@ -183,7 +183,7 @@ class CursorPaginator(object):
         return r
 
 
-class BaseOpenAlex(object):
+class BaseOpenAlex:
 
     """Base class for OpenAlex objects."""
 
@@ -233,21 +233,21 @@ class BaseOpenAlex(object):
         if not self.params:
             return self.url_collection
 
-        l = []
+        l_params = []
         for k, v in self.params.items():
 
             if v is None:
                 pass
             elif isinstance(v, list):
                 v_quote = [quote_plus(q) for q in v]
-                l.append(k + "=" + ",".join(v_quote))
+                l_params.append(k + "=" + ",".join(v_quote))
             elif k in ["filter", "sort"]:
-                l.append(k + "=" + _flatten_kv(v))
+                l_params.append(k + "=" + _flatten_kv(v))
             else:
-                l.append(k + "=" + quote_plus(str(v)))
+                l_params.append(k + "=" + quote_plus(str(v)))
 
-        if l:
-            return self.url_collection + "?" + "&".join(l)
+        if l_params:
+            return self.url_collection + "?" + "&".join(l_params)
 
         return self.url_collection
 

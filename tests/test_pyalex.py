@@ -301,8 +301,8 @@ def test_referenced_works():
 @pytest.mark.xfail()
 def test_code_examples():
 
-    # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code
-    # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc
+    # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code  # noqa
+    # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc  # noqa
 
     r_original = requests.get(
         "https://api.openalex.org/works?filter=institutions.is_global_south:true"
