@@ -32,3 +32,9 @@ packages = ["pyalex"]
 
 [tool.setuptools_scm]
 write_to = "pyalex/_version.py"
+
+[tool.ruff]
+select = ["E", "F", "UP", "I", "B"]
+
+[tool.ruff.isort]
+force-single-line = true
