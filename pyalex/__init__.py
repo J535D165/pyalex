@@ -9,6 +9,8 @@ from pyalex.api import Author
 from pyalex.api import Authors
 from pyalex.api import Concept
 from pyalex.api import Concepts
+from pyalex.api import Funder
+from pyalex.api import Funders
 from pyalex.api import Institution
 from pyalex.api import Institutions
 from pyalex.api import Journals
@@ -31,6 +33,8 @@ __all__ = [
     "Author",
     "Sources",
     "Source",
+    "Funder",
+    "Funders",
     "Publishers",
     "Publisher",
     "Venues",

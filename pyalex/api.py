@@ -136,6 +136,9 @@ class Publisher(OpenAlexEntity):
     pass
 
 
+class Funder(OpenAlexEntity):
+    pass
+
 # deprecated
 
 
@@ -382,6 +385,11 @@ class Publishers(BaseOpenAlex):
     url_collection = config.openalex_url + "/publishers"
     obj = Publisher
 
+
+class Funders(BaseOpenAlex):
+
+    url_collection = config.openalex_url + "/funders"
+    obj = Funder
 
 # deprecated
 

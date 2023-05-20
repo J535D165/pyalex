@@ -44,10 +44,10 @@ pip install pyalex
 
 ## Getting started
 
-PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), and [Publishers](https://docs.openalex.org/api-entities/publishers).
+PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [Publishers](https://docs.openalex.org/api-entities/publishers), and [Funders](https://docs.openalex.org/api-entities/funders).
 
 ```python
-from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers
+from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders
 ```
 
 ### The polite pool
@@ -64,7 +64,7 @@ pyalex.config.email = "mail@example.com"
 
 ### Get single entity
 
-Get a single Work, Author, Source, Institution, Concept, or Publisher from OpenAlex by the
+Get a single Work, Author, Source, Institution, Concept, Publisher or Funder from OpenAlex by the
 OpenAlex ID, or by DOI or ROR.
 
 ```python
@@ -95,7 +95,7 @@ Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
 
 #### Get random
 
-Get a [random Work, Author, Source, Institution, Concept, or Publisher](https://docs.openalex.org/how-to-use-the-api/get-single-entities/random-result).
+Get a [random Work, Author, Source, Institution, Concept, Publisher or Funder](https://docs.openalex.org/how-to-use-the-api/get-single-entities/random-result).
 
 ```python
 Works().random()
@@ -103,6 +103,8 @@ Authors().random()
 Sources().random()
 Institutions().random()
 Concepts().random()
+Publishers().random()
+Funders().random()
 ```
 
 #### Get abstract
@@ -113,7 +115,7 @@ Only for Works. Request a work from the OpenAlex database:
 w = Works()["W3128349626"]
 ```
 
-All attributes are available like documented under [Works](https://docs.openalex.org/api-entities/works/work-object), as well as `abstract` (only if `abstract_inverted_index` is not None). This abstract made human readable is create on the fly. 
+All attributes are available like documented under [Works](https://docs.openalex.org/api-entities/works/work-object), as well as `abstract` (only if `abstract_inverted_index` is not None). This abstract made human readable is create on the fly.
 
 ```python
 w["abstract"]
@@ -186,6 +188,11 @@ Authors().search_filter(display_name="einstein").get()
 ```python
 Works().search_filter(title="cubist").get()
 ```
+
+```python
+Funders().search_filter(display_name="health").get()
+```
+
 
 #### Sort entity lists
 
@@ -326,7 +333,7 @@ Works() \
 
 ```
 
-## Experimental 
+## Experimental
 
 ### Authentication
 
