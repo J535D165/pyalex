@@ -8,6 +8,7 @@ from requests import HTTPError
 import pyalex
 from pyalex import Authors
 from pyalex import Concepts
+from pyalex import Funders
 from pyalex import Institutions
 from pyalex import Publishers
 from pyalex import Sources
@@ -38,7 +39,8 @@ def test_meta_entities():
     assert "count" in m
     _, m = Works().get(return_meta=True)
     assert "count" in m
-
+    _, m = Funders().get(return_meta=True)
+    assert "count" in m
 
 def test_works_params():
 
