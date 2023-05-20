@@ -305,7 +305,7 @@ class BaseOpenAlex:
                 Defaults to 10000.
 
         Returns:
-            CursorPaginator: Itterator to use for returning and processing each page 
+            CursorPaginator: Iterator to use for returning and processing each page 
             result in sequence. 
         """
         return CursorPaginator(self, per_page=per_page, cursor=cursor, n_max=n_max)
