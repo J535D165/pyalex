@@ -5,7 +5,7 @@ from urllib.parse import quote_plus
 import requests
 
 try:
-    from openalex._version import __version__
+    from pyalex._version import __version__
 except ImportError:
     __version__ = "0.0.0"
 
