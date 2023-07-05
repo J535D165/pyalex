@@ -198,6 +198,10 @@ class BaseOpenAlex:
 
         return self.filter(openalex_id="|".join(record_list)).get()
 
+    def _full_collection_name(self):
+
+        return config.openalex_url + "/" + self.__class__.__name__.lower()
+
     def __getattr__(self, key):
 
         if key == "groupby":
@@ -218,7 +222,7 @@ class BaseOpenAlex:
         if isinstance(record_id, list):
             return self._get_multi_items(record_id)
 
-        url = self.url_collection + "/" + record_id
+        url = self._full_collection_name() + "/" + record_id
         params = {"api_key": config.api_key} if config.api_key else {}
         res = requests.get(
             url,
@@ -228,13 +232,13 @@ class BaseOpenAlex:
         res.raise_for_status()
         res_json = res.json()
 
-        return self.obj(res_json)
+        return self.resource_class(res_json)
 
     @property
     def url(self):
 
         if not self.params:
-            return self.url_collection
+            return self._full_collection_name()
 
         l_params = []
         for k, v in self.params.items():
@@ -250,7 +254,9 @@ class BaseOpenAlex:
                 l_params.append(k + "=" + quote_plus(str(v)))
 
         if l_params:
-            return self.url_collection + "?" + "&".join(l_params)
+            return self._full_collection_name() + "?" + "&".join(l_params)
+
+        return self._full_collection_name()
 
     def count(self):
         _, m = self.get(return_meta=True, per_page=1)
@@ -289,7 +295,7 @@ class BaseOpenAlex:
         if "group-by" in self.params:
             results = res_json["group_by"]
         else:
-            results = [self.obj(ent) for ent in res_json["results"]]
+            results = [self.resource_class(ent) for ent in res_json["results"]]
 
         # return result and metadata
         if return_meta:
@@ -369,45 +375,31 @@ class BaseOpenAlex:
 
 
 class Works(BaseOpenAlex):
-
-    url_collection = config.openalex_url + "/works"
-    obj = Work
+    resource_class = Work
 
 
 class Authors(BaseOpenAlex):
-
-    url_collection = config.openalex_url + "/authors"
-    obj = Author
+    resource_class = Author
 
 
 class Sources(BaseOpenAlex):
-
-    url_collection = config.openalex_url + "/sources"
-    obj = Source
+    resource_class = Source
 
 
 class Institutions(BaseOpenAlex):
-
-    url_collection = config.openalex_url + "/institutions"
-    obj = Institution
+    resource_class = Institution
 
 
 class Concepts(BaseOpenAlex):
-
-    url_collection = config.openalex_url + "/concepts"
-    obj = Concept
+    resource_class = Concept
 
 
 class Publishers(BaseOpenAlex):
-
-    url_collection = config.openalex_url + "/publishers"
-    obj = Publisher
+    resource_class = Publisher
 
 
 class Funders(BaseOpenAlex):
-
-    url_collection = config.openalex_url + "/funders"
-    obj = Funder
+    resource_class = Funder
 
 # deprecated
 
