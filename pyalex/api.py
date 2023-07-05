@@ -252,7 +252,10 @@ class BaseOpenAlex:
         if l_params:
             return self.url_collection + "?" + "&".join(l_params)
 
-        return self.url_collection
+    def count(self):
+        _, m = self.get(return_meta=True, per_page=1)
+
+        return m["count"]
 
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
 
@@ -295,21 +298,21 @@ class BaseOpenAlex:
             return results
 
     def paginate(self, per_page=None, cursor="*", n_max=10000):
-        """Used for paging results of large responses using cursor paging. 
-        
-        OpenAlex offers two methods for paging: basic paging and cursor paging. 
-        Both methods are supported by PyAlex, although cursor paging seems to be 
+        """Used for paging results of large responses using cursor paging.
+
+        OpenAlex offers two methods for paging: basic paging and cursor paging.
+        Both methods are supported by PyAlex, although cursor paging seems to be
         easier to implement and less error-prone.
 
         Args:
             per_page (_type_, optional): Entries per page to return. Defaults to None.
             cursor (str, optional): _description_. Defaults to "*".
-            n_max (int, optional): Number of max results (not pages) to return. 
+            n_max (int, optional): Number of max results (not pages) to return.
                 Defaults to 10000.
 
         Returns:
-            CursorPaginator: Iterator to use for returning and processing each page 
-            result in sequence. 
+            CursorPaginator: Iterator to use for returning and processing each page
+            result in sequence.
         """
         return CursorPaginator(self, per_page=per_page, cursor=cursor, n_max=n_max)
 

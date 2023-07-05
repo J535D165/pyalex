@@ -133,7 +133,16 @@ Please respect the legal constraints when using this feature.
 results = Works().get()
 ```
 
-For list of entities, you can return the result as well as the metadata. By default, only the results are returned.
+For lists of entities, you can also `count` the number of records found
+instead of returning the results. This also works for search queries and
+filters.
+
+```python
+Works().count()
+# 10338153
+```
+
+For lists of entities, you can return the result as well as the metadata. By default, only the results are returned.
 
 ```python
 results, meta = Concepts().get(return_meta=True)

@@ -52,6 +52,11 @@ def test_works():
     assert len(Works().filter(publication_year=2020).get()) == 25
 
 
+def test_works_count():
+
+    assert Works().filter(publication_year=2020).count() > 10_000_000
+
+
 def test_per_page():
 
     assert len(Works().filter(publication_year=2020).get(per_page=200)) == 200
