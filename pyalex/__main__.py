@@ -27,6 +27,7 @@ def _parse_nested_arguments(s):
 
     return {k: v}
 
+
 def _cli_to_api(resource_class, args):
     """Convert CLI arguments to PyAlex API calls."""
 
