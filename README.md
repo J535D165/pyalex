@@ -354,6 +354,23 @@ import pyalex
 pyalex.config.api_key = "<MY_KEY>"
 ```
 
+### Command line interface
+
+PyAlex has an experimental command line interface. See `pyalex -h` for the
+full interface.
+
+Single entity
+
+```bash
+pyalex works https://doi.org/10.7717/peerj.4375
+```
+
+Filter entities
+
+```bash
+pyalex works --filter author.id=A2887243803
+```
+
 ## Alternatives
 
 [Diophila](https://github.com/smierz/diophila) is a nice Python wrapper for OpenAlex. It takes a slightly

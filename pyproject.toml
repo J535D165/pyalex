@@ -23,6 +23,9 @@ requires-python = ">=3.6"
 lint = ["ruff"]
 test = ["pytest"]
 
+[project.scripts]
+pyalex = "pyalex.__main__:main"
+
 [build-system]
 build-backend = 'setuptools.build_meta'
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
