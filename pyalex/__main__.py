@@ -21,7 +21,7 @@ def _parse_nested_arguments(s):
     if "." in k:
         k_split = k.split(".")
         k_dict = {k_split[-1]: v}
-        for p in k_split[1::-1]:
+        for p in k_split[:-1][::-1]:
             k_dict = {p: k_dict}
         return k_dict
 
