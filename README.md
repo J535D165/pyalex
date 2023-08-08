@@ -271,7 +271,8 @@ advised to use the built-in pager based on cursor paging.
 
 ##### Cursor paging
 
-Use `paginate()` for paging results. By default, `paginate`s argument `n_max`
+Use `paginate()` for paging results. Each page is a list of records, with a
+maximum of `per_page` (default 25). By default, `paginate`s argument `n_max`
 is set to 10000. Use `None` to retrieve all results.
 
 ```python
@@ -282,6 +283,19 @@ pager = Authors().search_filter(display_name="einstein").paginate(per_page=200)
 for page in pager:
     print(len(page))
 ```
+
+> Looking for an easy method to iterate the records of a pager?
+
+```python
+from itertools import chain
+from pyalex import Authors
+
+query = Authors().search_filter(display_name="einstein")
+
+for record in chain(*query.paginate(per_page=200)):
+    print(record["id"])
+```
+
 
 ### Get N-grams
 
