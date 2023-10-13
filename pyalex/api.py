@@ -23,9 +23,9 @@ config = AlexConfig(
     email=None,
     api_key=None, 
     openalex_url="https://api.openalex.org",
-    max_retries = 0,
-    retry_backoff_factor = 0.1,
-    retry_http_codes = [500, 503],
+    max_retries=0,
+    retry_backoff_factor=0.1,
+    retry_http_codes=[500, 503],
 )
 
 
