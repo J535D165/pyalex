@@ -94,7 +94,7 @@ def get_requests_session():
         total=config.max_retries,
         backoff_factor=config.retry_backoff_factor,
         status_forcelist=config.retry_http_codes,
-        allowed_methods={'POST'},
+        allowed_methods={'GET'},
     )
     requests_session.mount(
         'https://',
