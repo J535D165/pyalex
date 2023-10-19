@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11"
 ]
 license = {text = "MIT"}
-dependencies = ["requests"]
+dependencies = ["requests", "urllib3"]
 dynamic = ["version"]
 requires-python = ">=3.6"
 

@@ -3,6 +3,7 @@ import warnings
 from urllib.parse import quote_plus
 
 import requests
+from urllib3.util import Retry
 
 try:
     from pyalex._version import __version__
@@ -18,7 +19,14 @@ class AlexConfig(dict):
         return super().__setitem__(key, value)
 
 
-config = AlexConfig(email=None, api_key=None, openalex_url="https://api.openalex.org")
+config = AlexConfig(
+    email=None,
+    api_key=None, 
+    openalex_url="https://api.openalex.org",
+    max_retries=0,
+    retry_backoff_factor=0.1,
+    retry_http_codes=[429, 500, 503],
+)
 
 
 def _flatten_kv(d, prefix=""):
@@ -79,6 +87,23 @@ def invert_abstract(inv_index):
         return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
 
 
+def get_requests_session():
+    # create an Requests Session with automatic retry:
+    requests_session = requests.Session()
+    retries = Retry(
+        total=config.max_retries,
+        backoff_factor=config.retry_backoff_factor,
+        status_forcelist=config.retry_http_codes,
+        allowed_methods={'GET'},
+    )
+    requests_session.mount(
+        'https://',
+        requests.adapters.HTTPAdapter(max_retries=retries)
+    )
+    
+    return requests_session
+
+
 class QueryError(ValueError):
     pass
 
@@ -102,7 +127,7 @@ class Work(OpenAlexEntity):
 
         openalex_id = self["id"].split("/")[-1]
 
-        res = requests.get(
+        res = get_requests_session().get(
             f"{config.openalex_url}/works/{openalex_id}/ngrams",
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
         )
@@ -224,7 +249,7 @@ class BaseOpenAlex:
 
         url = self._full_collection_name() + "/" + record_id
         params = {"api_key": config.api_key} if config.api_key else {}
-        res = requests.get(
+        res = get_requests_session().get(
             url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
             params=params,
@@ -273,7 +298,7 @@ class BaseOpenAlex:
         self._add_params("cursor", cursor)
 
         params = {"api_key": config.api_key} if config.api_key else {}
-        res = requests.get(
+        res = get_requests_session().get(
             self.url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
             params=params,
