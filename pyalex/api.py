@@ -21,7 +21,7 @@ class AlexConfig(dict):
 
 config = AlexConfig(
     email=None,
-    api_key=None, 
+    api_key=None,
     openalex_url="https://api.openalex.org",
     max_retries=0,
     retry_backoff_factor=0.1,
@@ -30,9 +30,7 @@ config = AlexConfig(
 
 
 def _flatten_kv(d, prefix=""):
-
     if isinstance(d, dict):
-
         t = []
         for k, v in d.items():
             if isinstance(v, list):
@@ -44,7 +42,6 @@ def _flatten_kv(d, prefix=""):
 
         return ",".join(t)
     else:
-
         # workaround for bug https://groups.google.com/u/1/g/openalex-users/c/t46RWnzZaXc
         d = str(d).lower() if isinstance(d, bool) else d
 
@@ -52,7 +49,6 @@ def _flatten_kv(d, prefix=""):
 
 
 def _params_merge(params, add_params):
-
     for k, _v in add_params.items():
         if (
             k in params
@@ -81,7 +77,6 @@ def _params_merge(params, add_params):
 
 
 def invert_abstract(inv_index):
-
     if inv_index is not None:
         l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
         return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
@@ -94,13 +89,12 @@ def get_requests_session():
         total=config.max_retries,
         backoff_factor=config.retry_backoff_factor,
         status_forcelist=config.retry_http_codes,
-        allowed_methods={'GET'},
+        allowed_methods={"GET"},
     )
     requests_session.mount(
-        'https://',
-        requests.adapters.HTTPAdapter(max_retries=retries)
+        "https://", requests.adapters.HTTPAdapter(max_retries=retries)
     )
-    
+
     return requests_session
 
 
@@ -109,7 +103,6 @@ class QueryError(ValueError):
 
 
 class OpenAlexEntity(dict):
-
     pass
 
 
@@ -117,14 +110,12 @@ class Work(OpenAlexEntity):
     """OpenAlex work object."""
 
     def __getitem__(self, key):
-
         if key == "abstract":
             return invert_abstract(self["abstract_inverted_index"])
 
         return super().__getitem__(key)
 
     def ngrams(self, return_meta=False):
-
         openalex_id = self["id"].split("/")[-1]
 
         res = get_requests_session().get(
@@ -164,11 +155,11 @@ class Publisher(OpenAlexEntity):
 class Funder(OpenAlexEntity):
     pass
 
+
 # deprecated
 
 
 def Venue(*args, **kwargs):
-
     # warn about deprecation
     warnings.warn(
         "Venue is deprecated. Use Sources instead.",
@@ -181,20 +172,17 @@ def Venue(*args, **kwargs):
 
 class CursorPaginator:
     def __init__(self, alex_class=None, per_page=None, cursor="*", n_max=None):
-
         self.alex_class = alex_class
         self.per_page = per_page
         self.cursor = cursor
         self.n_max = n_max
 
     def __iter__(self):
-
         self.n = 0
 
         return self
 
     def __next__(self):
-
         if self.n_max and self.n >= self.n_max:
             raise StopIteration
 
@@ -216,19 +204,15 @@ class BaseOpenAlex:
     """Base class for OpenAlex objects."""
 
     def __init__(self, params=None):
-
         self.params = params
 
     def _get_multi_items(self, record_list):
-
         return self.filter(openalex_id="|".join(record_list)).get()
 
     def _full_collection_name(self):
-
         return config.openalex_url + "/" + self.__class__.__name__.lower()
 
     def __getattr__(self, key):
-
         if key == "groupby":
             raise AttributeError(
                 "Object has no attribute 'groupby'. " "Did you mean 'group_by'?"
@@ -243,7 +227,6 @@ class BaseOpenAlex:
         return getattr(self, key)
 
     def __getitem__(self, record_id):
-
         if isinstance(record_id, list):
             return self._get_multi_items(record_id)
 
@@ -261,13 +244,11 @@ class BaseOpenAlex:
 
     @property
     def url(self):
-
         if not self.params:
             return self._full_collection_name()
 
         l_params = []
         for k, v in self.params.items():
-
             if v is None:
                 pass
             elif isinstance(v, list):
@@ -289,7 +270,6 @@ class BaseOpenAlex:
         return m["count"]
 
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
-
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
 
@@ -348,11 +328,9 @@ class BaseOpenAlex:
         return CursorPaginator(self, per_page=per_page, cursor=cursor, n_max=n_max)
 
     def random(self):
-
         return self.__getitem__("random")
 
     def _add_params(self, argument, new_params):
-
         if self.params is None:
             self.params = {argument: new_params}
         elif argument in self.params and isinstance(self.params[argument], dict):
@@ -363,38 +341,31 @@ class BaseOpenAlex:
         logging.debug("Params updated:", self.params)
 
     def filter(self, **kwargs):
-
         self._add_params("filter", kwargs)
         return self
 
     def search_filter(self, **kwargs):
-
         self._add_params("filter", {f"{k}.search": v for k, v in kwargs.items()})
         return self
 
     def sort(self, **kwargs):
-
         self._add_params("sort", kwargs)
         return self
 
     def group_by(self, group_key):
-
         self._add_params("group-by", group_key)
         return self
 
     def search(self, s):
-
         self._add_params("search", s)
         return self
 
     def sample(self, n, seed=None):
-
         self._add_params("sample", n)
         self._add_params("seed", seed)
         return self
 
     def select(self, s):
-
         self._add_params("select", s)
         return self
 
@@ -426,11 +397,11 @@ class Publishers(BaseOpenAlex):
 class Funders(BaseOpenAlex):
     resource_class = Funder
 
+
 # deprecated
 
 
 def Venues(*args, **kwargs):
-
     # warn about deprecation
     warnings.warn(
         "Venues is deprecated. Use Sources instead.",

@@ -28,7 +28,6 @@ def test_config():
 
 
 def test_meta_entities():
-
     _, m = Authors().get(return_meta=True)
     assert "count" in m
     _, m = Concepts().get(return_meta=True)
@@ -42,44 +41,37 @@ def test_meta_entities():
     _, m = Funders().get(return_meta=True)
     assert "count" in m
 
-def test_works_params():
 
+def test_works_params():
     assert len(Works(params={"filter": {"publication_year": "2020"}}).get()) == 25
 
 
 def test_works():
-
     assert len(Works().filter(publication_year=2020).get()) == 25
 
 
 def test_works_count():
-
     assert Works().filter(publication_year=2020).count() > 10_000_000
 
 
 def test_per_page():
-
     assert len(Works().filter(publication_year=2020).get(per_page=200)) == 200
 
 
 def test_W4238809453_works():
-
     assert isinstance(Works()["W4238809453"], Work)
     assert Works()["W4238809453"]["doi"] == "https://doi.org/10.1001/jama.264.8.944b"
 
 
 def test_W4238809453_works_abstract():
-
     assert Works()["W4238809453"]["abstract"] is None
 
 
 def test_W4238809453_works_no_abstract():
-
     assert "abstract" not in Works()["W4238809453"]
 
 
 def test_W3128349626_works_abstract():
-
     w = Works()["W3128349626"]
 
     assert w["abstract"] is not None
@@ -87,7 +79,6 @@ def test_W3128349626_works_abstract():
 
 
 def test_W3128349626_works_no_abstract():
-
     w = Works()["W3128349626"]
 
     assert w["abstract_inverted_index"] is not None
@@ -95,18 +86,15 @@ def test_W3128349626_works_no_abstract():
 
 
 def test_work_error():
-
     with pytest.raises(HTTPError):
         Works()["NotAWorkID"]
 
 
 def test_random_works():
-
     assert isinstance(Works().random(), dict)
 
 
 def test_multi_works():
-
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
 
@@ -114,7 +102,6 @@ def test_multi_works():
 
 
 def test_works_multifilter():
-
     r = requests.get(
         "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
     ).json()
@@ -137,7 +124,6 @@ def test_works_multifilter():
 
 
 def test_works_url():
-
     url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
 
     assert url == Works().filter(publication_year=2020, is_oa=True).url
@@ -147,7 +133,6 @@ def test_works_url():
 
 
 def test_works_multifilter_meta():
-
     _, m1 = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)
     _, m2 = (
         Works().filter(publication_year=2020).filter(is_oa=True).get(return_meta=True)
@@ -157,13 +142,11 @@ def test_works_multifilter_meta():
 
 
 def test_query_error():
-
     with pytest.raises(QueryError):
         Works().filter(publication_year_error=2020).get()
 
 
 def test_data_publications():
-
     w, _ = (
         Works()
         .filter(authorships={"institutions": {"ror": "04pp8hn57"}})
@@ -176,7 +159,6 @@ def test_data_publications():
 
 
 def test_search():
-
     w = (
         Works()
         .search(
@@ -190,7 +172,6 @@ def test_search():
 
 
 def test_search_filter():
-
     r = requests.get(
         "https://api.openalex.org/authors?filter=display_name.search:einstein"
     ).json()
@@ -201,7 +182,6 @@ def test_search_filter():
 
 
 def test_cursor_by_hand():
-
     # example query
     query = Authors().search_filter(display_name="einstein")
 
@@ -212,7 +192,6 @@ def test_cursor_by_hand():
 
     # loop till next_cursor is None
     while next_cursor is not None:
-
         # get the results
         r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
 
@@ -226,7 +205,6 @@ def test_cursor_by_hand():
 
 
 def test_basic_paging():
-
     # example query
     query = Authors().search_filter(display_name="einstein")
 
@@ -238,7 +216,6 @@ def test_basic_paging():
 
     # loop till page is None
     while page is not None:
-
         # get the results
         r, m = query.get(return_meta=True, per_page=200, page=page)
 
@@ -250,17 +227,14 @@ def test_basic_paging():
 
 
 def test_cursor_paging():
-
     # example query
     pager = Authors().search_filter(display_name="einstein").paginate(per_page=200)
 
     for page in pager:
-
         assert len(page) >= 1 and len(page) <= 200
 
 
 def test_cursor_paging_n_max():
-
     # example query
     pager = (
         Authors()
@@ -270,14 +244,12 @@ def test_cursor_paging_n_max():
 
     n = 0
     for page in pager:
-
         n = n + len(page)
 
     assert n == 400
 
 
 def test_cursor_paging_n_max_none():
-
     # example query
     pager = (
         Authors()
@@ -287,12 +259,10 @@ def test_cursor_paging_n_max_none():
 
     n = 0
     for page in pager:
-
         n = n + len(page)
 
 
 def test_referenced_works():
-
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
 
@@ -307,7 +277,6 @@ def test_referenced_works():
 
 @pytest.mark.xfail()
 def test_code_examples():
-
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code  # noqa
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc  # noqa
 
@@ -330,7 +299,6 @@ def test_code_examples():
 
 
 def test_serializable(tmpdir):
-
     with open(Path(tmpdir, "test.json"), "w") as f:
         json.dump(Works()["W4238809453"], f)
 
@@ -339,26 +307,22 @@ def test_serializable(tmpdir):
 
 
 def test_ngrams_without_metadata():
-
     r = Works()["W2023271753"].ngrams(return_meta=False)
 
     assert len(r) == 1068
 
 
 def test_ngrams_with_metadata():
-
     r, meta = Works()["W2023271753"].ngrams(return_meta=True)
 
     assert meta["count"] == 1068
 
 
 def test_random_publishers():
-
     assert isinstance(Publishers().random(), dict)
 
 
 def test_and_operator():
-
     # https://github.com/J535D165/pyalex/issues/11
     url = "https://api.openalex.org/works?filter=institutions.country_code:tw,institutions.country_code:hk,institutions.country_code:us,publication_year:2022"  # noqa
 
@@ -390,13 +354,11 @@ def test_and_operator():
 
 
 def test_sample():
-
     url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true&sample=50"
     assert url == Works().filter(publication_year=2020, is_oa=True).sample(50).url
 
 
 def test_sample_seed():
-
     url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true&sample=50&seed=535"  # noqa
     assert (
         url
@@ -405,6 +367,5 @@ def test_sample_seed():
 
 
 def test_subset():
-
     url = "https://api.openalex.org/works?select=id,doi,display_name"
     assert url == Works().select(["id", "doi", "display_name"]).url
