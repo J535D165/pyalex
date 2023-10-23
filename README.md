@@ -260,20 +260,14 @@ Works().filter(institutions={"country_code": "fr|gb"}).get()
 
 #### Paging
 
-OpenAlex offers two methods for paging: [basic paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#basic-paging) and [cursor paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#cursor-paging). Both methods are supported by
-PyAlex, although cursor paging seems to be easier to implement and less error-prone.
+OpenAlex offers two methods for paging: [basic (offset) paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#basic-paging) and [cursor paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#cursor-paging). Both methods are supported by PyAlex.
 
-##### Basic paging
+##### Cursor paging (default)
 
-See limitations of [basic paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#basic-paging) in the OpenAlex documentation.
-It's relatively easy to implement basic paging with PyAlex, however it is
-advised to use the built-in pager based on cursor paging.
-
-##### Cursor paging
-
-Use `paginate()` for paging results. Each page is a list of records, with a
-maximum of `per_page` (default 25). By default, `paginate`s argument `n_max`
-is set to 10000. Use `None` to retrieve all results.
+Use the method `paginate()` to paginate results. Each returned page is a list
+of records, with a maximum of `per_page` (default 25). By default,
+`paginate`s argument `n_max` is set to 10000. Use `None` to retrieve all
+results.
 
 ```python
 from pyalex import Authors
@@ -294,6 +288,19 @@ query = Authors().search_filter(display_name="einstein")
 
 for record in chain(*query.paginate(per_page=200)):
     print(record["id"])
+```
+
+##### Basic paging
+
+See limitations of [basic paging](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/paging#basic-paging) in the OpenAlex documentation.
+
+```python
+from pyalex import Authors
+
+pager = Authors().search_filter(display_name="einstein").paginate(method="page", per_page=200)
+
+for page in pager:
+    print(len(page))
 ```
 
 
