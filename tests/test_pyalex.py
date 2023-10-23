@@ -97,6 +97,7 @@ def test_random_works():
 def test_multi_works():
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
+    print(w)
 
     assert len(Works()[w["referenced_works"]]) == 25
 

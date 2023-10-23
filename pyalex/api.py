@@ -284,27 +284,35 @@ class BaseOpenAlex:
 
     def _get_from_url(self, url, return_meta=False):
         params = {"api_key": config.api_key} if config.api_key else {}
+
+        print("hellowww")
+        # print(res.status_code)
         res = _get_requests_session().get(
-            self.url,
+            url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
             params=params,
         )
-        res_json = res.json()
 
         # handle query errors
         if res.status_code == 403:
             if (
-                isinstance(res_json["error"], str)
-                and "query parameters" in res_json["error"]
+                isinstance(res.json()["error"], str)
+                and "query parameters" in res.json()["error"]
             ):
-                raise QueryError(res_json["message"])
+                raise QueryError(res.json()["message"])
+
         res.raise_for_status()
+        res_json = res.json()
 
         # group-by or results page
-        if "group-by" in self.params:
+        if self.params and "group-by" in self.params:
             results = res_json["group_by"]
-        else:
+        elif "results" in res_json:
             results = [self.resource_class(ent) for ent in res_json["results"]]
+        elif "id" in res_json:
+            results = self.resource_class(res_json)
+        else:
+            raise ValueError("Unknown response format")
 
         # return result and metadata
         if return_meta:
