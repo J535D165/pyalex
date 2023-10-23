@@ -170,33 +170,58 @@ def Venue(*args, **kwargs):
     return Source(*args, **kwargs)
 
 
-class CursorPaginator:
-    def __init__(self, alex_class=None, per_page=None, cursor="*", n_max=None):
-        self.alex_class = alex_class
+class Paginator:
+    VALUE_CURSOR_START = "*"
+    VALUE_NUMBER_START = 1
+
+    def __init__(
+        self, endpoint_class, method="cursor", value=None, per_page=None, n_max=None
+    ):
+        self.method = method
+        self.endpoint_class = endpoint_class
+        self.value = value
         self.per_page = per_page
-        self.cursor = cursor
         self.n_max = n_max
+
+        self._next_value = value
 
     def __iter__(self):
         self.n = 0
 
         return self
 
-    def __next__(self):
+    def _is_max(self):
         if self.n_max and self.n >= self.n_max:
+            return True
+        return False
+
+    def __next__(self):
+        if self._next_value is None or self._is_max():
             raise StopIteration
 
-        r, m = self.alex_class.get(
-            return_meta=True, per_page=self.per_page, cursor=self.cursor
+        if self.method == "cursor":
+            pagination_params = {"cursor": self._next_value}
+        elif self.method == "page":
+            pagination_params = {"page": self._next_value}
+        else:
+            raise ValueError()
+
+        results, meta = self.endpoint_class.get(
+            return_meta=True, per_page=self.per_page, **pagination_params
         )
 
-        if m["next_cursor"] is None:
-            raise StopIteration
+        if self.method == "cursor":
+            self._next_value = meta["next_cursor"]
 
-        self.n = self.n + len(r)
-        self.cursor = m["next_cursor"]
+        if self.method == "page":
+            if len(results) > 0:
+                self._next_value = meta["page"] + 1
+            else:
+                self._next_value = None
 
-        return r
+        self.n = self.n + len(results)
+
+        return results
 
 
 class BaseOpenAlex:
@@ -230,17 +255,9 @@ class BaseOpenAlex:
         if isinstance(record_id, list):
             return self._get_multi_items(record_id)
 
-        url = self._full_collection_name() + "/" + record_id
-        params = {"api_key": config.api_key} if config.api_key else {}
-        res = get_requests_session().get(
-            url,
-            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-            params=params,
+        return self._get_from_url(
+            self._full_collection_name() + "/" + record_id, return_meta=False
         )
-        res.raise_for_status()
-        res_json = res.json()
-
-        return self.resource_class(res_json)
 
     @property
     def url(self):
@@ -269,32 +286,22 @@ class BaseOpenAlex:
 
         return m["count"]
 
-    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
-        if per_page is not None and (per_page < 1 or per_page > 200):
-            raise ValueError("per_page should be a number between 1 and 200.")
-
-        self._add_params("per-page", per_page)
-        self._add_params("page", page)
-        self._add_params("cursor", cursor)
-
-        params = {"api_key": config.api_key} if config.api_key else {}
-        res = get_requests_session().get(
+    def _get_from_url(self, url, return_meta=False, params=None):
+        res = requests.get(
             self.url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
             params=params,
         )
+        res_json = res.json()
 
         # handle query errors
         if res.status_code == 403:
-            res_json = res.json()
             if (
                 isinstance(res_json["error"], str)
                 and "query parameters" in res_json["error"]
             ):
                 raise QueryError(res_json["message"])
         res.raise_for_status()
-
-        res_json = res.json()
 
         # group-by or results page
         if "group-by" in self.params:
@@ -308,12 +315,22 @@ class BaseOpenAlex:
         else:
             return results
 
-    def paginate(self, per_page=None, cursor="*", n_max=10000):
-        """Used for paging results of large responses using cursor paging.
+    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
+        if per_page is not None and (per_page < 1 or per_page > 200):
+            raise ValueError("per_page should be a number between 1 and 200.")
 
-        OpenAlex offers two methods for paging: basic paging and cursor paging.
-        Both methods are supported by PyAlex, although cursor paging seems to be
-        easier to implement and less error-prone.
+        self._add_params("per-page", per_page)
+        self._add_params("page", page)
+        self._add_params("cursor", cursor)
+
+        return self._get_from_url(self.url, return_meta=return_meta)
+
+    def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
+        """Used for paging results of large responses using pagination.
+
+        OpenAlex offers two methods for paging: basic (offset) paging and
+        cursor paging. Both methods are supported by pyalex, although cursor
+        paging seems to be easier to implement and less error-prone.
 
         Args:
             per_page (_type_, optional): Entries per page to return. Defaults to None.
@@ -322,10 +339,20 @@ class BaseOpenAlex:
                 Defaults to 10000.
 
         Returns:
-            CursorPaginator: Iterator to use for returning and processing each page
+            Paginator: Iterator to use for returning and processing each page
             result in sequence.
         """
-        return CursorPaginator(self, per_page=per_page, cursor=cursor, n_max=n_max)
+
+        if method == "cursor":
+            value = cursor
+        elif method == "page":
+            value = page
+        else:
+            raise ValueError("Method should be 'cursor' or 'page'")
+
+        return Paginator(
+            self, method=method, value=value, per_page=per_page, n_max=n_max
+        )
 
     def random(self):
         return self.__getitem__("random")
