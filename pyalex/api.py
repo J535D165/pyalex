@@ -225,7 +225,6 @@ class Paginator:
 
 
 class BaseOpenAlex:
-
     """Base class for OpenAlex objects."""
 
     def __init__(self, params=None):
@@ -286,7 +285,8 @@ class BaseOpenAlex:
 
         return m["count"]
 
-    def _get_from_url(self, url, return_meta=False, params=None):
+    def _get_from_url(self, url, return_meta=False):
+        params = {"api_key": config.api_key} if config.api_key else {}
         res = requests.get(
             self.url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
@@ -326,23 +326,6 @@ class BaseOpenAlex:
         return self._get_from_url(self.url, return_meta=return_meta)
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
-        """Used for paging results of large responses using pagination.
-
-        OpenAlex offers two methods for paging: basic (offset) paging and
-        cursor paging. Both methods are supported by pyalex, although cursor
-        paging seems to be easier to implement and less error-prone.
-
-        Args:
-            per_page (_type_, optional): Entries per page to return. Defaults to None.
-            cursor (str, optional): _description_. Defaults to "*".
-            n_max (int, optional): Number of max results (not pages) to return.
-                Defaults to 10000.
-
-        Returns:
-            Paginator: Iterator to use for returning and processing each page
-            result in sequence.
-        """
-
         if method == "cursor":
             value = cursor
         elif method == "page":
