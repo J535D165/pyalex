@@ -106,67 +106,6 @@ class OpenAlexEntity(dict):
     pass
 
 
-class Work(OpenAlexEntity):
-    """OpenAlex work object."""
-
-    def __getitem__(self, key):
-        if key == "abstract":
-            return invert_abstract(self["abstract_inverted_index"])
-
-        return super().__getitem__(key)
-
-    def ngrams(self, return_meta=False):
-        openalex_id = self["id"].split("/")[-1]
-
-        res = _get_requests_session().get(
-            f"{config.openalex_url}/works/{openalex_id}/ngrams",
-            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-        )
-        res.raise_for_status()
-        results = res.json()
-
-        # return result and metadata
-        if return_meta:
-            return results["ngrams"], results["meta"]
-        else:
-            return results["ngrams"]
-
-
-class Author(OpenAlexEntity):
-    pass
-
-
-class Source(OpenAlexEntity):
-    pass
-
-
-class Institution(OpenAlexEntity):
-    pass
-
-
-class Concept(OpenAlexEntity):
-    pass
-
-
-class Publisher(OpenAlexEntity):
-    pass
-
-
-class Funder(OpenAlexEntity):
-    pass
-
-
-def Venue(*args, **kwargs):  # deprecated
-    # warn about deprecation
-    warnings.warn(
-        "Venue is deprecated. Use Sources instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    return Source(*args, **kwargs)
-
-
 class Paginator:
     VALUE_CURSOR_START = "*"
     VALUE_NUMBER_START = 1
@@ -383,32 +322,94 @@ class BaseOpenAlex:
         return self
 
 
+# The API
+
+
+class Work(OpenAlexEntity):
+    def __getitem__(self, key):
+        if key == "abstract":
+            return invert_abstract(self["abstract_inverted_index"])
+
+        return super().__getitem__(key)
+
+    def ngrams(self, return_meta=False):
+        openalex_id = self["id"].split("/")[-1]
+
+        res = _get_requests_session().get(
+            f"{config.openalex_url}/works/{openalex_id}/ngrams",
+            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
+        )
+        res.raise_for_status()
+        results = res.json()
+
+        # return result and metadata
+        if return_meta:
+            return results["ngrams"], results["meta"]
+        else:
+            return results["ngrams"]
+
+
 class Works(BaseOpenAlex):
     resource_class = Work
+
+
+class Author(OpenAlexEntity):
+    pass
 
 
 class Authors(BaseOpenAlex):
     resource_class = Author
 
 
+class Source(OpenAlexEntity):
+    pass
+
+
 class Sources(BaseOpenAlex):
     resource_class = Source
+
+
+class Institution(OpenAlexEntity):
+    pass
 
 
 class Institutions(BaseOpenAlex):
     resource_class = Institution
 
 
+class Concept(OpenAlexEntity):
+    pass
+
+
 class Concepts(BaseOpenAlex):
     resource_class = Concept
+
+
+class Publisher(OpenAlexEntity):
+    pass
 
 
 class Publishers(BaseOpenAlex):
     resource_class = Publisher
 
 
+class Funder(OpenAlexEntity):
+    pass
+
+
 class Funders(BaseOpenAlex):
     resource_class = Funder
+
+
+def Venue(*args, **kwargs):  # deprecated
+    # warn about deprecation
+    warnings.warn(
+        "Venue is deprecated. Use Sources instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    return Source(*args, **kwargs)
 
 
 def Venues(*args, **kwargs):  # deprecated
