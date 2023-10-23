@@ -7,7 +7,7 @@ repos:
     exclude: "^.*drawio|.*.svg$"
   - id: check-yaml
   - id: check-added-large-files
-- repo: https://github.com/charliermarsh/ruff-pre-commit
+- repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.1.0
   hooks:
   - id: ruff
