@@ -76,13 +76,7 @@ def _params_merge(params, add_params):
             params[k] = add_params[k]
 
 
-def invert_abstract(inv_index):
-    if inv_index is not None:
-        l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
-        return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
-
-
-def get_requests_session():
+def _get_requests_session():
     # create an Requests Session with automatic retry:
     requests_session = requests.Session()
     retries = Retry(
@@ -96,6 +90,12 @@ def get_requests_session():
     )
 
     return requests_session
+
+
+def invert_abstract(inv_index):
+    if inv_index is not None:
+        l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
+        return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
 
 
 class QueryError(ValueError):
@@ -118,7 +118,7 @@ class Work(OpenAlexEntity):
     def ngrams(self, return_meta=False):
         openalex_id = self["id"].split("/")[-1]
 
-        res = get_requests_session().get(
+        res = _get_requests_session().get(
             f"{config.openalex_url}/works/{openalex_id}/ngrams",
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
         )
@@ -156,10 +156,7 @@ class Funder(OpenAlexEntity):
     pass
 
 
-# deprecated
-
-
-def Venue(*args, **kwargs):
+def Venue(*args, **kwargs):  # deprecated
     # warn about deprecation
     warnings.warn(
         "Venue is deprecated. Use Sources instead.",
@@ -287,7 +284,7 @@ class BaseOpenAlex:
 
     def _get_from_url(self, url, return_meta=False):
         params = {"api_key": config.api_key} if config.api_key else {}
-        res = requests.get(
+        res = _get_requests_session().get(
             self.url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
             params=params,
@@ -408,10 +405,7 @@ class Funders(BaseOpenAlex):
     resource_class = Funder
 
 
-# deprecated
-
-
-def Venues(*args, **kwargs):
+def Venues(*args, **kwargs):  # deprecated
     # warn about deprecation
     warnings.warn(
         "Venues is deprecated. Use Sources instead.",
