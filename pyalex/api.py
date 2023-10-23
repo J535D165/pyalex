@@ -76,13 +76,7 @@ def _params_merge(params, add_params):
             params[k] = add_params[k]
 
 
-def invert_abstract(inv_index):
-    if inv_index is not None:
-        l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
-        return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
-
-
-def get_requests_session():
+def _get_requests_session():
     # create an Requests Session with automatic retry:
     requests_session = requests.Session()
     retries = Retry(
@@ -98,6 +92,12 @@ def get_requests_session():
     return requests_session
 
 
+def invert_abstract(inv_index):
+    if inv_index is not None:
+        l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
+        return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
+
+
 class QueryError(ValueError):
     pass
 
@@ -106,101 +106,61 @@ class OpenAlexEntity(dict):
     pass
 
 
-class Work(OpenAlexEntity):
-    """OpenAlex work object."""
+class Paginator:
+    VALUE_CURSOR_START = "*"
+    VALUE_NUMBER_START = 1
 
-    def __getitem__(self, key):
-        if key == "abstract":
-            return invert_abstract(self["abstract_inverted_index"])
-
-        return super().__getitem__(key)
-
-    def ngrams(self, return_meta=False):
-        openalex_id = self["id"].split("/")[-1]
-
-        res = get_requests_session().get(
-            f"{config.openalex_url}/works/{openalex_id}/ngrams",
-            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-        )
-        res.raise_for_status()
-        results = res.json()
-
-        # return result and metadata
-        if return_meta:
-            return results["ngrams"], results["meta"]
-        else:
-            return results["ngrams"]
-
-
-class Author(OpenAlexEntity):
-    pass
-
-
-class Source(OpenAlexEntity):
-    pass
-
-
-class Institution(OpenAlexEntity):
-    pass
-
-
-class Concept(OpenAlexEntity):
-    pass
-
-
-class Publisher(OpenAlexEntity):
-    pass
-
-
-class Funder(OpenAlexEntity):
-    pass
-
-
-# deprecated
-
-
-def Venue(*args, **kwargs):
-    # warn about deprecation
-    warnings.warn(
-        "Venue is deprecated. Use Sources instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    return Source(*args, **kwargs)
-
-
-class CursorPaginator:
-    def __init__(self, alex_class=None, per_page=None, cursor="*", n_max=None):
-        self.alex_class = alex_class
+    def __init__(
+        self, endpoint_class, method="cursor", value=None, per_page=None, n_max=None
+    ):
+        self.method = method
+        self.endpoint_class = endpoint_class
+        self.value = value
         self.per_page = per_page
-        self.cursor = cursor
         self.n_max = n_max
+
+        self._next_value = value
 
     def __iter__(self):
         self.n = 0
 
         return self
 
-    def __next__(self):
+    def _is_max(self):
         if self.n_max and self.n >= self.n_max:
+            return True
+        return False
+
+    def __next__(self):
+        if self._next_value is None or self._is_max():
             raise StopIteration
 
-        r, m = self.alex_class.get(
-            return_meta=True, per_page=self.per_page, cursor=self.cursor
+        if self.method == "cursor":
+            pagination_params = {"cursor": self._next_value}
+        elif self.method == "page":
+            pagination_params = {"page": self._next_value}
+        else:
+            raise ValueError()
+
+        results, meta = self.endpoint_class.get(
+            return_meta=True, per_page=self.per_page, **pagination_params
         )
 
-        if m["next_cursor"] is None:
-            raise StopIteration
+        if self.method == "cursor":
+            self._next_value = meta["next_cursor"]
 
-        self.n = self.n + len(r)
-        self.cursor = m["next_cursor"]
+        if self.method == "page":
+            if len(results) > 0:
+                self._next_value = meta["page"] + 1
+            else:
+                self._next_value = None
 
-        return r
+        self.n = self.n + len(results)
+
+        return results
 
 
 class BaseOpenAlex:
-
     """Base class for OpenAlex objects."""
 
     def __init__(self, params=None):
@@ -230,17 +190,9 @@ class BaseOpenAlex:
         if isinstance(record_id, list):
             return self._get_multi_items(record_id)
 
-        url = self._full_collection_name() + "/" + record_id
-        params = {"api_key": config.api_key} if config.api_key else {}
-        res = get_requests_session().get(
-            url,
-            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-            params=params,
+        return self._get_from_url(
+            self._full_collection_name() + "/" + record_id, return_meta=False
         )
-        res.raise_for_status()
-        res_json = res.json()
-
-        return self.resource_class(res_json)
 
     @property
     def url(self):
@@ -269,6 +221,42 @@ class BaseOpenAlex:
 
         return m["count"]
 
+    def _get_from_url(self, url, return_meta=False):
+        params = {"api_key": config.api_key} if config.api_key else {}
+
+        res = _get_requests_session().get(
+            url,
+            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
+            params=params,
+        )
+
+        # handle query errors
+        if res.status_code == 403:
+            if (
+                isinstance(res.json()["error"], str)
+                and "query parameters" in res.json()["error"]
+            ):
+                raise QueryError(res.json()["message"])
+
+        res.raise_for_status()
+        res_json = res.json()
+
+        # group-by or results page
+        if self.params and "group-by" in self.params:
+            results = res_json["group_by"]
+        elif "results" in res_json:
+            results = [self.resource_class(ent) for ent in res_json["results"]]
+        elif "id" in res_json:
+            results = self.resource_class(res_json)
+        else:
+            raise ValueError("Unknown response format")
+
+        # return result and metadata
+        if return_meta:
+            return results, res_json["meta"]
+        else:
+            return results
+
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
@@ -277,55 +265,19 @@ class BaseOpenAlex:
         self._add_params("page", page)
         self._add_params("cursor", cursor)
 
-        params = {"api_key": config.api_key} if config.api_key else {}
-        res = get_requests_session().get(
-            self.url,
-            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-            params=params,
+        return self._get_from_url(self.url, return_meta=return_meta)
+
+    def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
+        if method == "cursor":
+            value = cursor
+        elif method == "page":
+            value = page
+        else:
+            raise ValueError("Method should be 'cursor' or 'page'")
+
+        return Paginator(
+            self, method=method, value=value, per_page=per_page, n_max=n_max
         )
-
-        # handle query errors
-        if res.status_code == 403:
-            res_json = res.json()
-            if (
-                isinstance(res_json["error"], str)
-                and "query parameters" in res_json["error"]
-            ):
-                raise QueryError(res_json["message"])
-        res.raise_for_status()
-
-        res_json = res.json()
-
-        # group-by or results page
-        if "group-by" in self.params:
-            results = res_json["group_by"]
-        else:
-            results = [self.resource_class(ent) for ent in res_json["results"]]
-
-        # return result and metadata
-        if return_meta:
-            return results, res_json["meta"]
-        else:
-            return results
-
-    def paginate(self, per_page=None, cursor="*", n_max=10000):
-        """Used for paging results of large responses using cursor paging.
-
-        OpenAlex offers two methods for paging: basic paging and cursor paging.
-        Both methods are supported by PyAlex, although cursor paging seems to be
-        easier to implement and less error-prone.
-
-        Args:
-            per_page (_type_, optional): Entries per page to return. Defaults to None.
-            cursor (str, optional): _description_. Defaults to "*".
-            n_max (int, optional): Number of max results (not pages) to return.
-                Defaults to 10000.
-
-        Returns:
-            CursorPaginator: Iterator to use for returning and processing each page
-            result in sequence.
-        """
-        return CursorPaginator(self, per_page=per_page, cursor=cursor, n_max=n_max)
 
     def random(self):
         return self.__getitem__("random")
@@ -370,38 +322,97 @@ class BaseOpenAlex:
         return self
 
 
+# The API
+
+
+class Work(OpenAlexEntity):
+    def __getitem__(self, key):
+        if key == "abstract":
+            return invert_abstract(self["abstract_inverted_index"])
+
+        return super().__getitem__(key)
+
+    def ngrams(self, return_meta=False):
+        openalex_id = self["id"].split("/")[-1]
+
+        res = _get_requests_session().get(
+            f"{config.openalex_url}/works/{openalex_id}/ngrams",
+            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
+        )
+        res.raise_for_status()
+        results = res.json()
+
+        # return result and metadata
+        if return_meta:
+            return results["ngrams"], results["meta"]
+        else:
+            return results["ngrams"]
+
+
 class Works(BaseOpenAlex):
     resource_class = Work
+
+
+class Author(OpenAlexEntity):
+    pass
 
 
 class Authors(BaseOpenAlex):
     resource_class = Author
 
 
+class Source(OpenAlexEntity):
+    pass
+
+
 class Sources(BaseOpenAlex):
     resource_class = Source
+
+
+class Institution(OpenAlexEntity):
+    pass
 
 
 class Institutions(BaseOpenAlex):
     resource_class = Institution
 
 
+class Concept(OpenAlexEntity):
+    pass
+
+
 class Concepts(BaseOpenAlex):
     resource_class = Concept
+
+
+class Publisher(OpenAlexEntity):
+    pass
 
 
 class Publishers(BaseOpenAlex):
     resource_class = Publisher
 
 
+class Funder(OpenAlexEntity):
+    pass
+
+
 class Funders(BaseOpenAlex):
     resource_class = Funder
 
 
-# deprecated
+def Venue(*args, **kwargs):  # deprecated
+    # warn about deprecation
+    warnings.warn(
+        "Venue is deprecated. Use Sources instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    return Source(*args, **kwargs)
 
 
-def Venues(*args, **kwargs):
+def Venues(*args, **kwargs):  # deprecated
     # warn about deprecation
     warnings.warn(
         "Venues is deprecated. Use Sources instead.",
