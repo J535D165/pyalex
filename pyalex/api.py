@@ -285,8 +285,6 @@ class BaseOpenAlex:
     def _get_from_url(self, url, return_meta=False):
         params = {"api_key": config.api_key} if config.api_key else {}
 
-        print("hellowww")
-        # print(res.status_code)
         res = _get_requests_session().get(
             url,
             headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
