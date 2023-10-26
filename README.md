@@ -391,6 +391,8 @@ R users can use the excellent [OpenAlexR](https://github.com/ropensci/openalexR)
 
 ## Contact
 
+> This library is a community contribution. The authors of this Python library aren't affiliated with OpenAlex.
+
 Feel free to reach out with questions, remarks, and suggestions. The
 [issue tracker](/issues) is a good starting point. You can also email me at
 [jonathandebruinos@gmail.com](mailto:jonathandebruinos@gmail.com).
