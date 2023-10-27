@@ -169,8 +169,11 @@ class BaseOpenAlex:
     def _get_multi_items(self, record_list):
         return self.filter(openalex_id="|".join(record_list)).get()
 
-    def _full_collection_name(self):
-        return config.openalex_url + "/" + self.__class__.__name__.lower()
+    def _full_collection_name(self, autocomplete=False):
+        if autocomplete:
+            return config.openalex_url + "/autocomplete/" + self.__class__.__name__.lower()
+        else:
+            return config.openalex_url + "/" + self.__class__.__name__.lower()
 
     def __getattr__(self, key):
         if key == "groupby":
@@ -197,7 +200,13 @@ class BaseOpenAlex:
     @property
     def url(self):
         if not self.params:
-            return self._full_collection_name()
+            return self._full_collection_name(autocomplete=False)
+
+        if 'q' in self.params.keys():
+            # if q is in params, then it means that an autocomplete query was asked
+            autocomplete = True
+        else:
+            autocomplete = False
 
         l_params = []
         for k, v in self.params.items():
@@ -212,9 +221,9 @@ class BaseOpenAlex:
                 l_params.append(k + "=" + quote_plus(str(v)))
 
         if l_params:
-            return self._full_collection_name() + "?" + "&".join(l_params)
+            return self._full_collection_name(autocomplete=autocomplete) + "?" + "&".join(l_params)
 
-        return self._full_collection_name()
+        return self._full_collection_name(autocomplete=autocomplete)
 
     def count(self):
         _, m = self.get(return_meta=True, per_page=1)
@@ -264,7 +273,6 @@ class BaseOpenAlex:
         self._add_params("per-page", per_page)
         self._add_params("page", page)
         self._add_params("cursor", cursor)
-
         return self._get_from_url(self.url, return_meta=return_meta)
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
@@ -320,6 +328,11 @@ class BaseOpenAlex:
     def select(self, s):
         self._add_params("select", s)
         return self
+
+    def autocomplete(self, s, **kwargs):
+        """ query the API to autocomplete the string s """
+        self._add_params("q", s)
+        return self.get(**kwargs)
 
 
 # The API
