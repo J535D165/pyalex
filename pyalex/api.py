@@ -171,7 +171,8 @@ class BaseOpenAlex:
 
     def _full_collection_name(self, autocomplete=False):
         if autocomplete:
-            return config.openalex_url + "/autocomplete/" + self.__class__.__name__.lower()
+            base_url = config.openalex_url + "/autocomplete/"
+            return base_url + self.__class__.__name__.lower()
         else:
             return config.openalex_url + "/" + self.__class__.__name__.lower()
 
@@ -221,7 +222,8 @@ class BaseOpenAlex:
                 l_params.append(k + "=" + quote_plus(str(v)))
 
         if l_params:
-            return self._full_collection_name(autocomplete=autocomplete) + "?" + "&".join(l_params)
+            return self._full_collection_name(
+                autocomplete=autocomplete) + "?" + "&".join(l_params)
 
         return self._full_collection_name(autocomplete=autocomplete)
 
