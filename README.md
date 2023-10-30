@@ -65,6 +65,18 @@ import pyalex
 pyalex.config.email = "mail@example.com"
 ```
 
+### Max retries
+
+By default, PyAlex will raise an error at the first failure when querying the OpenAlex API. You can set `max_retries` to a number higher than 0 to allow PyAlex to retry when an error occurs. `retry_backoff_factor` is related to the delay between two retry, and `retry_http_codes` are the HTTP error codes that should trigger a retry.
+
+```python
+from pyalex import config
+
+config.max_retries = 0
+config.retry_backoff_factor = 0.1
+config.retry_http_codes = [429, 500, 503]
+```
+
 ### Get single entity
 
 Get a single Work, Author, Source, Institution, Concept, Publisher or Funder from OpenAlex by the
