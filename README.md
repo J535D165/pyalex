@@ -25,7 +25,7 @@ The following features of OpenAlex are currently supported by PyAlex:
 - [x] Select fields
 - [x] Sample
 - [x] Pagination
-- [ ] [Autocomplete endpoint](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities)
+- [x] Autocomplete endpoint
 - [x] N-grams
 - [x] Authentication
 
@@ -47,10 +47,10 @@ pip install pyalex
 
 ## Getting started
 
-PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [Publishers](https://docs.openalex.org/api-entities/publishers), and [Funders](https://docs.openalex.org/api-entities/funders).
+PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [AutocompletesPublishers](https://docs.openalex.org/api-entities/publishers), and [Funders](https://docs.openalex.org/api-entities/funders).
 
 ```python
-from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders
+from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders, Autocompletes
 ```
 
 ### The polite pool
@@ -304,6 +304,32 @@ pager = Authors().search_filter(display_name="einstein").paginate(method="page",
 
 for page in pager:
     print(len(page))
+```
+
+
+### Autocomplete
+
+OpenAlex reference: [Autocomplete entities](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities).
+
+Autocomplete a string:
+```python
+from pyalex import Autocompletes
+
+Autocompletes()["stockholm"]
+```
+
+Autocomplete a string to get a specific type of entities:
+```python
+from pyalex import Institutions
+
+Institutions().autocomplete("stockholm")
+```
+
+You can also use the filters to autocomplete:
+```python
+from pyalex import Works
+
+Works().filter(cited_by_count=">1000", publication_year=2009).autocomplete("planetary boundaries")
 ```
 
 

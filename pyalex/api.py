@@ -330,7 +330,7 @@ class BaseOpenAlex:
         return self
 
     def autocomplete(self, s, **kwargs):
-        """ query the API to autocomplete the string s """
+        """ autocomplete the string s, for a specific type of entity """
         self._add_params("q", s)
         return self.get(**kwargs)
 
@@ -412,6 +412,20 @@ class Funder(OpenAlexEntity):
 
 class Funders(BaseOpenAlex):
     resource_class = Funder
+
+
+class Autocomplete(OpenAlexEntity):
+    pass
+
+
+class Autocompletes(BaseOpenAlex):
+    """ Class to autocomplete without being based on the type of entity """
+    resource_class = Autocomplete
+
+    def __getitem__(self, key):
+        return self._get_from_url(
+            config.openalex_url + "/autocomplete" + "?q=" + key, return_meta=False
+        )
 
 
 def Venue(*args, **kwargs):  # deprecated
