@@ -288,3 +288,16 @@ def test_sample_seed():
 def test_subset():
     url = "https://api.openalex.org/works?select=id,doi,display_name"
     assert url == Works().select(["id", "doi", "display_name"]).url
+
+
+def test_auth():
+    w_no_auth = Works().get()
+    pyalex.config.email = "pyalex_github_unittests@example.com"
+    pyalex.config.api_key = "my_api_key"
+
+    w_auth = Works().get()
+
+    pyalex.config.email = None
+    pyalex.config.api_key = None
+
+    assert len(w_no_auth) == len(w_auth)
