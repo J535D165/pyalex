@@ -3,6 +3,7 @@ import warnings
 from urllib.parse import quote_plus
 
 import requests
+from requests.auth import AuthBase
 from urllib3.util import Retry
 
 try:
@@ -22,6 +23,7 @@ class AlexConfig(dict):
 config = AlexConfig(
     email=None,
     api_key=None,
+    user_agent="pyalex/" + __version__,
     openalex_url="https://api.openalex.org",
     max_retries=0,
     retry_backoff_factor=0.1,
@@ -160,6 +162,32 @@ class Paginator:
         return results
 
 
+class OpenAlexAuth(AuthBase):
+    """OpenAlex auth class based on requests auth
+
+    Includes the email, api_key and user-agent headers.
+
+    arguments:
+        config: an AlexConfig object
+
+    """
+
+    def __init__(self, config):
+        self.config = config
+
+    def __call__(self, r):
+        if self.config.api_key:
+            r.headers["Authorization"] = f"Bearer {self.config.api_key}"
+
+        if self.config.email:
+            r.headers["From"] = self.config.email
+
+        if self.config.user_agent:
+            r.headers["User-Agent"] = self.config.user_agent
+
+        return r
+
+
 class BaseOpenAlex:
     """Base class for OpenAlex objects."""
 
@@ -222,13 +250,7 @@ class BaseOpenAlex:
         return m["count"]
 
     def _get_from_url(self, url, return_meta=False):
-        params = {"api_key": config.api_key} if config.api_key else {}
-
-        res = _get_requests_session().get(
-            url,
-            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-            params=params,
-        )
+        res = _get_requests_session().get(url, auth=OpenAlexAuth(config))
 
         # handle query errors
         if res.status_code == 403:
@@ -334,11 +356,9 @@ class Work(OpenAlexEntity):
 
     def ngrams(self, return_meta=False):
         openalex_id = self["id"].split("/")[-1]
+        n_gram_url = f"{config.openalex_url}/works/{openalex_id}/ngrams"
 
-        res = _get_requests_session().get(
-            f"{config.openalex_url}/works/{openalex_id}/ngrams",
-            headers={"User-Agent": "pyalex/" + __version__, "email": config.email},
-        )
+        res = _get_requests_session().get(n_gram_url, auth=OpenAlexAuth(config))
         res.raise_for_status()
         results = res.json()
 
