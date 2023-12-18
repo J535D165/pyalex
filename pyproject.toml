@@ -21,7 +21,7 @@ requires-python = ">=3.8"
 
 [project.optional-dependencies]
 lint = ["ruff"]
-test = ["pytest"]
+test = ["pytest", "pytest-xdist"]
 
 [build-system]
 build-backend = 'setuptools.build_meta'
