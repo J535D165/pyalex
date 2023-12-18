@@ -7,8 +7,6 @@ except ImportError:
 
 from pyalex.api import Author
 from pyalex.api import Authors
-from pyalex.api import Autocomplete
-from pyalex.api import Autocompletes
 from pyalex.api import Concept
 from pyalex.api import Concepts
 from pyalex.api import Funder
@@ -25,6 +23,7 @@ from pyalex.api import Venue
 from pyalex.api import Venues
 from pyalex.api import Work
 from pyalex.api import Works
+from pyalex.api import autocomplete
 from pyalex.api import config
 from pyalex.api import invert_abstract
 
@@ -33,8 +32,6 @@ __all__ = [
     "Work",
     "Authors",
     "Author",
-    "Autocomplete",
-    "Autocompletes",
     "Sources",
     "Source",
     "Funder",
@@ -49,6 +46,7 @@ __all__ = [
     "Concept",
     "People",
     "Journals",
+    "autocomplete",
     "config",
     "invert_abstract",
 ]

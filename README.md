@@ -323,23 +323,23 @@ OpenAlex reference: [Autocomplete entities](https://docs.openalex.org/how-to-use
 
 Autocomplete a string:
 ```python
-from pyalex import Autocompletes
+from pyalex import autocomplete
 
-Autocompletes()["stockholm"]
+autocomplete("stockholm resilience centre")
 ```
 
 Autocomplete a string to get a specific type of entities:
 ```python
 from pyalex import Institutions
 
-Institutions().autocomplete("stockholm")
+Institutions().autocomplete("stockholm resilience centre")
 ```
 
 You can also use the filters to autocomplete:
 ```python
 from pyalex import Works
 
-Works().filter(cited_by_count=">1000", publication_year=2009).autocomplete("planetary boundaries")
+r = Works().filter(publication_year=2023).autocomplete("planetary boundaries")
 ```
 
 

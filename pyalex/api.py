@@ -197,8 +197,8 @@ class BaseOpenAlex:
     def _get_multi_items(self, record_list):
         return self.filter(openalex_id="|".join(record_list)).get()
 
-    def _full_collection_name(self, autocomplete=False):
-        if autocomplete:
+    def _full_collection_name(self):
+        if self.params is not None and 'q' in self.params.keys():
             base_url = config.openalex_url + "/autocomplete/"
             return base_url + self.__class__.__name__.lower()
         else:
@@ -229,13 +229,7 @@ class BaseOpenAlex:
     @property
     def url(self):
         if not self.params:
-            return self._full_collection_name(autocomplete=False)
-
-        if 'q' in self.params.keys():
-            # if q is in params, then it means that an autocomplete query was asked
-            autocomplete = True
-        else:
-            autocomplete = False
+            return self._full_collection_name()
 
         l_params = []
         for k, v in self.params.items():
@@ -250,10 +244,9 @@ class BaseOpenAlex:
                 l_params.append(k + "=" + quote_plus(str(v)))
 
         if l_params:
-            return self._full_collection_name(
-                autocomplete=autocomplete) + "?" + "&".join(l_params)
+            return self._full_collection_name() + "?" + "&".join(l_params)
 
-        return self._full_collection_name(autocomplete=autocomplete)
+        return self._full_collection_name()
 
     def count(self):
         _, m = self.get(return_meta=True, per_page=1)
@@ -440,7 +433,7 @@ class Autocomplete(OpenAlexEntity):
     pass
 
 
-class Autocompletes(BaseOpenAlex):
+class autocompletes(BaseOpenAlex):
     """ Class to autocomplete without being based on the type of entity """
     resource_class = Autocomplete
 
@@ -471,6 +464,10 @@ def Venues(*args, **kwargs):  # deprecated
 
     return Sources(*args, **kwargs)
 
+
+def autocomplete(s):
+    """ autocomplete with any type of entity """
+    return autocompletes()[s]
 
 # aliases
 People = Authors
