@@ -45,10 +45,10 @@ pip install pyalex
 
 ## Getting started
 
-PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [Publishers](https://docs.openalex.org/api-entities/publishers), [Funders](https://docs.openalex.org/api-entities/funders), and [Autocompletes](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities).
+PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [Publishers](https://docs.openalex.org/api-entities/publishers), [Funders](https://docs.openalex.org/api-entities/funders), and [Autocomplete](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities).
 
 ```python
-from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders, Autocompletes
+from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders, autocomplete
 ```
 
 ### The polite pool
