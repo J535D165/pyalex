@@ -19,6 +19,8 @@ from pyalex.api import Publisher
 from pyalex.api import Publishers
 from pyalex.api import Source
 from pyalex.api import Sources
+from pyalex.api import Topic
+from pyalex.api import Topics
 from pyalex.api import Venue
 from pyalex.api import Venues
 from pyalex.api import Work
@@ -43,6 +45,8 @@ __all__ = [
     "Institution",
     "Concepts",
     "Concept",
+    "Topics",
+    "Topic",
     "People",
     "Journals",
     "config",

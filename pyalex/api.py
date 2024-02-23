@@ -405,6 +405,14 @@ class Concepts(BaseOpenAlex):
     resource_class = Concept
 
 
+class Topic(OpenAlexEntity):
+    pass
+
+
+class Topics(BaseOpenAlex):
+    resource_class = Topic
+
+
 class Publisher(OpenAlexEntity):
     pass
 
