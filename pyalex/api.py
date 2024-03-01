@@ -405,6 +405,30 @@ class Concepts(BaseOpenAlex):
     resource_class = Concept
 
 
+class Domain(OpenAlexEntity):
+    pass
+
+
+class Domains(BaseOpenAlex):
+    resource_class = Domain
+
+
+class Field(OpenAlexEntity):
+    pass
+
+
+class Fields(BaseOpenAlex):
+    resource_class = Field
+
+
+class Subfield(OpenAlexEntity):
+    pass
+
+
+class Subfields(BaseOpenAlex):
+    resource_class = Subfield
+
+
 class Topic(OpenAlexEntity):
     pass
 

@@ -19,6 +19,12 @@ from pyalex.api import Publisher
 from pyalex.api import Publishers
 from pyalex.api import Source
 from pyalex.api import Sources
+from pyalex.api import Domain
+from pyalex.api import Domains
+from pyalex.api import Field
+from pyalex.api import Fields
+from pyalex.api import Subfield
+from pyalex.api import Subfields
 from pyalex.api import Topic
 from pyalex.api import Topics
 from pyalex.api import Venue
@@ -45,6 +51,12 @@ __all__ = [
     "Institution",
     "Concepts",
     "Concept",
+    "Domains",
+    "Domain",
+    "Fields",
+    "Field",
+    "Subfields",
+    "Subfield",
     "Topics",
     "Topic",
     "People",
