@@ -198,7 +198,11 @@ class BaseOpenAlex:
         return self.filter(openalex_id="|".join(record_list)).get()
 
     def _full_collection_name(self):
-        return config.openalex_url + "/" + self.__class__.__name__.lower()
+        if self.params is not None and 'q' in self.params.keys():
+            base_url = config.openalex_url + "/autocomplete/"
+            return base_url + self.__class__.__name__.lower()
+        else:
+            return config.openalex_url + "/" + self.__class__.__name__.lower()
 
     def __getattr__(self, key):
         if key == "groupby":
@@ -286,7 +290,6 @@ class BaseOpenAlex:
         self._add_params("per-page", per_page)
         self._add_params("page", page)
         self._add_params("cursor", cursor)
-
         return self._get_from_url(self.url, return_meta=return_meta)
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
@@ -342,6 +345,11 @@ class BaseOpenAlex:
     def select(self, s):
         self._add_params("select", s)
         return self
+
+    def autocomplete(self, s, **kwargs):
+        """ autocomplete the string s, for a specific type of entity """
+        self._add_params("q", s)
+        return self.get(**kwargs)
 
 
 # The API
@@ -421,6 +429,20 @@ class Funders(BaseOpenAlex):
     resource_class = Funder
 
 
+class Autocomplete(OpenAlexEntity):
+    pass
+
+
+class autocompletes(BaseOpenAlex):
+    """ Class to autocomplete without being based on the type of entity """
+    resource_class = Autocomplete
+
+    def __getitem__(self, key):
+        return self._get_from_url(
+            config.openalex_url + "/autocomplete" + "?q=" + key, return_meta=False
+        )
+
+
 def Venue(*args, **kwargs):  # deprecated
     # warn about deprecation
     warnings.warn(
@@ -442,6 +464,10 @@ def Venues(*args, **kwargs):  # deprecated
 
     return Sources(*args, **kwargs)
 
+
+def autocomplete(s):
+    """ autocomplete with any type of entity """
+    return autocompletes()[s]
 
 # aliases
 People = Authors
