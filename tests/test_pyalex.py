@@ -8,10 +8,14 @@ from requests import HTTPError
 import pyalex
 from pyalex import Authors
 from pyalex import Concepts
+from pyalex import Domains
+from pyalex import Fields
 from pyalex import Funders
 from pyalex import Institutions
 from pyalex import Publishers
 from pyalex import Sources
+from pyalex import Subfields
+from pyalex import Topics
 from pyalex import Work
 from pyalex import Works
 from pyalex import autocomplete
@@ -36,6 +40,14 @@ def test_meta_entities():
     _, m = Institutions().get(return_meta=True)
     assert "count" in m
     _, m = Sources().get(return_meta=True)
+    assert "count" in m
+    _, m = Domains().get(return_meta=True)
+    assert "count" in m
+    _, m = Fields().get(return_meta=True)
+    assert "count" in m
+    _, m = Subfields().get(return_meta=True)
+    assert "count" in m
+    _, m = Topics().get(return_meta=True)
     assert "count" in m
     _, m = Works().get(return_meta=True)
     assert "count" in m

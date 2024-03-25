@@ -198,7 +198,7 @@ class BaseOpenAlex:
         return self.filter(openalex_id="|".join(record_list)).get()
 
     def _full_collection_name(self):
-        if self.params is not None and 'q' in self.params.keys():
+        if self.params is not None and "q" in self.params.keys():
             base_url = config.openalex_url + "/autocomplete/"
             return base_url + self.__class__.__name__.lower()
         else:
@@ -347,7 +347,7 @@ class BaseOpenAlex:
         return self
 
     def autocomplete(self, s, **kwargs):
-        """ autocomplete the string s, for a specific type of entity """
+        """autocomplete the string s, for a specific type of entity"""
         self._add_params("q", s)
         return self.get(**kwargs)
 
@@ -413,6 +413,38 @@ class Concepts(BaseOpenAlex):
     resource_class = Concept
 
 
+class Domain(OpenAlexEntity):
+    pass
+
+
+class Domains(BaseOpenAlex):
+    resource_class = Domain
+
+
+class Field(OpenAlexEntity):
+    pass
+
+
+class Fields(BaseOpenAlex):
+    resource_class = Field
+
+
+class Subfield(OpenAlexEntity):
+    pass
+
+
+class Subfields(BaseOpenAlex):
+    resource_class = Subfield
+
+
+class Topic(OpenAlexEntity):
+    pass
+
+
+class Topics(BaseOpenAlex):
+    resource_class = Topic
+
+
 class Publisher(OpenAlexEntity):
     pass
 
@@ -434,7 +466,8 @@ class Autocomplete(OpenAlexEntity):
 
 
 class autocompletes(BaseOpenAlex):
-    """ Class to autocomplete without being based on the type of entity """
+    """Class to autocomplete without being based on the type of entity"""
+
     resource_class = Autocomplete
 
     def __getitem__(self, key):
@@ -466,8 +499,9 @@ def Venues(*args, **kwargs):  # deprecated
 
 
 def autocomplete(s):
-    """ autocomplete with any type of entity """
+    """autocomplete with any type of entity"""
     return autocompletes()[s]
+
 
 # aliases
 People = Authors

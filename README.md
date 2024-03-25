@@ -45,10 +45,10 @@ pip install pyalex
 
 ## Getting started
 
-PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [Publishers](https://docs.openalex.org/api-entities/publishers), [Funders](https://docs.openalex.org/api-entities/funders), and [Autocomplete](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities).
+PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Topics](https://docs.openalex.org/api-entities/topics), [Publishers](https://docs.openalex.org/api-entities/publishers), and [Funders](https://docs.openalex.org/api-entities/funders).
 
 ```python
-from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders, autocomplete
+from pyalex import Works, Authors, Sources, Institutions, Topics, Publishers, Funders
 ```
 
 ### The polite pool
@@ -77,7 +77,7 @@ config.retry_http_codes = [429, 500, 503]
 
 ### Get single entity
 
-Get a single Work, Author, Source, Institution, Concept, Publisher or Funder from OpenAlex by the
+Get a single Work, Author, Source, Institution, Concept, Topic, Publisher or Funder from OpenAlex by the
 OpenAlex ID, or by DOI or ROR.
 
 ```python
@@ -99,7 +99,7 @@ Works()["W2741809807"]["open_access"]
 {'is_oa': True, 'oa_status': 'gold', 'oa_url': 'https://doi.org/10.7717/peerj.4375'}
 ```
 
-The previous works also for Authors, Venues, Institutions and Concepts
+The previous works also for Authors, Venues, Institutions, Concepts and Topics
 
 ```python
 Authors()["A2887243803"]
@@ -108,7 +108,7 @@ Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
 
 #### Get random
 
-Get a [random Work, Author, Source, Institution, Concept, Publisher or Funder](https://docs.openalex.org/how-to-use-the-api/get-single-entities/random-result).
+Get a [random Work, Author, Source, Institution, Concept, Topic, Publisher or Funder](https://docs.openalex.org/how-to-use-the-api/get-single-entities/random-result).
 
 ```python
 Works().random()
@@ -116,6 +116,7 @@ Authors().random()
 Sources().random()
 Institutions().random()
 Concepts().random()
+Topics().random()
 Publishers().random()
 Funders().random()
 ```
@@ -158,7 +159,7 @@ Works().count()
 For lists of entities, you can return the result as well as the metadata. By default, only the results are returned.
 
 ```python
-results, meta = Concepts().get(return_meta=True)
+results, meta = Topics().get(return_meta=True)
 ```
 
 ```python
