@@ -23,7 +23,7 @@ The following features of OpenAlex are currently supported by PyAlex:
 - [x] Select fields
 - [x] Sample
 - [x] Pagination
-- [ ] [Autocomplete endpoint](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities)
+- [x] Autocomplete endpoint
 - [x] N-grams
 - [x] Authentication
 
@@ -45,10 +45,10 @@ pip install pyalex
 
 ## Getting started
 
-PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [Publishers](https://docs.openalex.org/api-entities/publishers), and [Funders](https://docs.openalex.org/api-entities/funders).
+PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Concepts](https://docs.openalex.org/api-entities/concepts), [Publishers](https://docs.openalex.org/api-entities/publishers), [Funders](https://docs.openalex.org/api-entities/funders), and [Autocomplete](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities).
 
 ```python
-from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders
+from pyalex import Works, Authors, Sources, Institutions, Concepts, Publishers, Funders, autocomplete
 ```
 
 ### The polite pool
@@ -61,6 +61,18 @@ set your email:
 import pyalex
 
 pyalex.config.email = "mail@example.com"
+```
+
+### Max retries
+
+By default, PyAlex will raise an error at the first failure when querying the OpenAlex API. You can set `max_retries` to a number higher than 0 to allow PyAlex to retry when an error occurs. `retry_backoff_factor` is related to the delay between two retry, and `retry_http_codes` are the HTTP error codes that should trigger a retry.
+
+```python
+from pyalex import config
+
+config.max_retries = 0
+config.retry_backoff_factor = 0.1
+config.retry_http_codes = [429, 500, 503]
 ```
 
 ### Get single entity
@@ -302,6 +314,32 @@ pager = Authors().search_filter(display_name="einstein").paginate(method="page",
 
 for page in pager:
     print(len(page))
+```
+
+
+### Autocomplete
+
+OpenAlex reference: [Autocomplete entities](https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/autocomplete-entities).
+
+Autocomplete a string:
+```python
+from pyalex import autocomplete
+
+autocomplete("stockholm resilience centre")
+```
+
+Autocomplete a string to get a specific type of entities:
+```python
+from pyalex import Institutions
+
+Institutions().autocomplete("stockholm resilience centre")
+```
+
+You can also use the filters to autocomplete:
+```python
+from pyalex import Works
+
+r = Works().filter(publication_year=2023).autocomplete("planetary boundaries")
 ```
 
 
