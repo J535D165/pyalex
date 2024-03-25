@@ -15,6 +15,7 @@ from pyalex import Sources
 from pyalex import Domains, Fields, Subfields, Topics
 from pyalex import Work
 from pyalex import Works
+from pyalex import autocomplete
 from pyalex.api import QueryError
 
 
@@ -310,3 +311,15 @@ def test_auth():
     pyalex.config.api_key = None
 
     assert len(w_no_auth) == len(w_auth)
+
+
+def test_autocomplete_works():
+    w = Works().filter(publication_year=2023).autocomplete("planetary boundaries")
+
+    assert len(w) > 5
+
+
+def test_autocomplete():
+    a = autocomplete("stockholm resilience")
+
+    assert len(a) > 5
