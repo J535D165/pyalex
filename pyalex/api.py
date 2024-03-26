@@ -405,14 +405,6 @@ class Institutions(BaseOpenAlex):
     resource_class = Institution
 
 
-class Concept(OpenAlexEntity):
-    pass
-
-
-class Concepts(BaseOpenAlex):
-    resource_class = Concept
-
-
 class Domain(OpenAlexEntity):
     pass
 
@@ -496,6 +488,25 @@ def Venues(*args, **kwargs):  # deprecated
     )
 
     return Sources(*args, **kwargs)
+
+
+class Concept(OpenAlexEntity):
+    # warn about deprecation
+    warnings.warn(
+        "Concept is deprecated by OpenAlex and replaced by topics.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+
+class Concepts(BaseOpenAlex):
+    # warn about deprecation
+    warnings.warn(
+        "Concepts is deprecated by OpenAlex and replaced by topics.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    resource_class = Concept
 
 
 def autocomplete(s):
