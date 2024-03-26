@@ -33,8 +33,8 @@ packages = ["pyalex"]
 [tool.setuptools_scm]
 write_to = "pyalex/_version.py"
 
-[tool.ruff]
+[tool.ruff.lint]
 select = ["E", "F", "UP", "I", "B"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 force-single-line = true
