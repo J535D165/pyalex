@@ -417,9 +417,6 @@ pyalex.config.api_key = "<MY_KEY>"
 
 ## Alternatives
 
-[Diophila](https://github.com/smierz/diophila) is a nice Python wrapper for OpenAlex. It takes a slightly
-different approach, especially interesting to those who don't like the pipe operations.
-
 R users can use the excellent [OpenAlexR](https://github.com/ropensci/openalexR) library.
 
 ## License
