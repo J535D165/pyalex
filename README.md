@@ -4,7 +4,7 @@
 
 # PyAlex
 
-![PyPI](https://img.shields.io/pypi/v/pyalex) [![DOI](https://zenodo.org/badge/557541347.svg)](https://zenodo.org/badge/latestdoi/557541347) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/J535D165/pyalex/badge)](https://securityscorecards.dev/viewer/?uri=github.com/J535D165/pyalex)
+![PyPI](https://img.shields.io/pypi/v/pyalex) [![DOI](https://zenodo.org/badge/557541347.svg)](https://zenodo.org/badge/latestdoi/557541347)
 
 
 PyAlex is a Python library for [OpenAlex](https://openalex.org/). OpenAlex is
