@@ -21,6 +21,8 @@ from pyalex import Works
 from pyalex import autocomplete
 from pyalex.api import QueryError
 
+pyalex.config.max_retries = 10
+
 
 def test_config():
     pyalex.config.email = "pyalex_github_unittests@example.com"

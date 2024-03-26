@@ -1,5 +1,8 @@
+import pyalex
 from pyalex import Authors
 from pyalex.api import Paginator
+
+pyalex.config.max_retries = 10
 
 
 def test_cursor():
