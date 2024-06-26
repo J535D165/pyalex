@@ -239,7 +239,7 @@ class BaseOpenAlex:
                 v_quote = [quote_plus(q) for q in v]
                 l_params.append(k + "=" + ",".join(v_quote))
             elif k in ["filter", "sort"]:
-                l_params.append(k + "=" + _flatten_kv(v))
+                l_params.append(k + "=" + quote_plus(_flatten_kv(v)))
             else:
                 l_params.append(k + "=" + quote_plus(str(v)))
 
