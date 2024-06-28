@@ -139,7 +139,7 @@ def test_works_multifilter():
 
 
 def test_works_url():
-    url = "https://api.openalex.org/works?filter=publication_year%3A2020%2Cis_oa%3Atrue"
+    url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
 
     assert url == Works().filter(publication_year=2020, is_oa=True).url
     assert url == Works().filter(publication_year=2020).filter(is_oa=True).url
@@ -258,7 +258,7 @@ def test_random_publishers():
 
 def test_and_operator():
     # https://github.com/J535D165/pyalex/issues/11
-    url = "https://api.openalex.org/works?filter=institutions.country_code%3Atw%2Cinstitutions.country_code%3Ahk%2Cinstitutions.country_code%3Aus%2Cpublication_year%3A2022"
+    url = "https://api.openalex.org/works?filter=institutions.country_code:tw,institutions.country_code:hk,institutions.country_code:us,publication_year:2022"
 
     assert (
         url
@@ -288,12 +288,12 @@ def test_and_operator():
 
 
 def test_sample():
-    url = "https://api.openalex.org/works?filter=publication_year%3A2020%2Cis_oa%3Atrue&sample=50"
+    url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true&sample=50"
     assert url == Works().filter(publication_year=2020, is_oa=True).sample(50).url
 
 
 def test_sample_seed():
-    url = "https://api.openalex.org/works?filter=publication_year%3A2020%2Cis_oa%3Atrue&sample=50&seed=535"  # noqa
+    url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true&sample=50&seed=535"  # noqa
     assert (
         url
         == Works().filter(publication_year=2020, is_oa=True).sample(50, seed=535).url
@@ -332,3 +332,22 @@ def test_autocomplete():
 
 def test_filter_urlencoding():
     assert Works().filter(doi="10.1207/s15327809jls0703&4_2").count() == 1
+    assert (
+        Works()["https://doi.org/10.1207/s15327809jls0703&4_2"]["id"]
+        == "https://openalex.org/W4238483711"
+    )
+
+
+@pytest.mark.skip("This test is not working due to inconsistencies in the API.")
+def test_urlencoding_list():
+    assert (
+        Works()
+        .filter(
+            doi=[
+                "https://doi.org/10.1207/s15327809jls0703&4_2",
+                "https://doi.org/10.1001/jama.264.8.944b",
+            ]
+        )
+        .count()
+        == 2
+    )
