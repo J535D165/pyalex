@@ -23,7 +23,7 @@ class AlexConfig(dict):
 config = AlexConfig(
     email=None,
     api_key=None,
-    user_agent="pyalex/" + __version__,
+    user_agent="pyalex/{__version__}",
     openalex_url="https://api.openalex.org",
     max_retries=0,
     retry_backoff_factor=0.1,
@@ -31,12 +31,28 @@ config = AlexConfig(
 )
 
 
+def _quote_oa_value(v):
+    """Prepare a value for the OpenAlex API.
+
+    Applies URL encoding to strings and converts booleans to lowercase strings.
+    """
+
+    # workaround for bug https://groups.google.com/u/1/g/openalex-users/c/t46RWnzZaXc
+    if isinstance(v, bool):
+        return str(v).lower()
+
+    if isinstance(v, str):
+        return quote_plus(v)
+
+    return v
+
+
 def _flatten_kv(d, prefix=""):
     if isinstance(d, dict):
         t = []
         for k, v in d.items():
             if isinstance(v, list):
-                t.extend([f"{prefix}.{k}:{i}" for i in v])
+                t.extend([f"{prefix}.{k}:{_quote_oa_value(i)}" for i in v])
             else:
                 new_prefix = f"{prefix}.{k}" if prefix else f"{k}"
                 x = _flatten_kv(v, prefix=new_prefix)
@@ -44,10 +60,7 @@ def _flatten_kv(d, prefix=""):
 
         return ",".join(t)
     else:
-        # workaround for bug https://groups.google.com/u/1/g/openalex-users/c/t46RWnzZaXc
-        d = str(d).lower() if isinstance(d, bool) else d
-
-        return f"{prefix}:{d}"
+        return f"{prefix}:{_quote_oa_value(d)}"
 
 
 def _params_merge(params, add_params):
@@ -199,10 +212,11 @@ class BaseOpenAlex:
 
     def _full_collection_name(self):
         if self.params is not None and "q" in self.params.keys():
-            base_url = config.openalex_url + "/autocomplete/"
-            return base_url + self.__class__.__name__.lower()
+            return (
+                f"{config.openalex_url}/autocomplete/{self.__class__.__name__.lower()}"
+            )
         else:
-            return config.openalex_url + "/" + self.__class__.__name__.lower()
+            return f"{config.openalex_url}/{self.__class__.__name__.lower()}"
 
     def __getattr__(self, key):
         if key == "groupby":
@@ -223,7 +237,7 @@ class BaseOpenAlex:
             return self._get_multi_items(record_id)
 
         return self._get_from_url(
-            self._full_collection_name() + "/" + record_id, return_meta=False
+            f"{self._full_collection_name()}/{record_id}", return_meta=False
         )
 
     @property
@@ -236,15 +250,14 @@ class BaseOpenAlex:
             if v is None:
                 pass
             elif isinstance(v, list):
-                v_quote = [quote_plus(q) for q in v]
-                l_params.append(k + "=" + ",".join(v_quote))
+                l_params.append("{}={}".format(k, ",".join(map(_quote_oa_value, v))))
             elif k in ["filter", "sort"]:
-                l_params.append(k + "=" + quote_plus(_flatten_kv(v)))
+                l_params.append(f"{k}={_flatten_kv(v)}")
             else:
-                l_params.append(k + "=" + quote_plus(str(v)))
+                l_params.append(f"{k}={_quote_oa_value(v)}")
 
         if l_params:
-            return self._full_collection_name() + "?" + "&".join(l_params)
+            return "{}?{}".format(self._full_collection_name(), "&".join(l_params))
 
         return self._full_collection_name()
 
@@ -464,7 +477,7 @@ class autocompletes(BaseOpenAlex):
 
     def __getitem__(self, key):
         return self._get_from_url(
-            config.openalex_url + "/autocomplete" + "?q=" + key, return_meta=False
+            f"{config.openalex_url}/autocomplete?q={key}", return_meta=False
         )
 
 
