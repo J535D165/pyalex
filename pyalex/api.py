@@ -307,6 +307,8 @@ class BaseOpenAlex:
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
         if method == "cursor":
+            if self.params.get("sample"):
+                raise ValueError("method should be 'page' when using sample")
             value = cursor
         elif method == "page":
             value = page
