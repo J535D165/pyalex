@@ -95,3 +95,8 @@ def test_cursor_paging_n_max_none():
     )
 
     sum(len(page) for page in p)
+
+
+def test_paging_with_sample():
+    p = Authors().sample(26).paginate(per_page=25)
+    assert sum(len(page) for page in p) == 26
