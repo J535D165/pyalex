@@ -1,3 +1,5 @@
+import pytest
+
 import pyalex
 from pyalex import Authors
 from pyalex.api import Paginator
@@ -98,5 +100,5 @@ def test_cursor_paging_n_max_none():
 
 
 def test_paging_with_sample():
-    p = Authors().sample(26).paginate(per_page=25)
-    assert sum(len(page) for page in p) == 26
+    with pytest.raises(ValueError):
+        Authors().sample(1).paginate(method="cursor")
