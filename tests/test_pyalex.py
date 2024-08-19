@@ -37,8 +37,6 @@ def test_config():
 def test_meta_entities():
     _, m = Authors().get(return_meta=True)
     assert "count" in m
-    _, m = Concepts().get(return_meta=True)
-    assert "count" in m
     _, m = Institutions().get(return_meta=True)
     assert "count" in m
     _, m = Sources().get(return_meta=True)
@@ -54,6 +52,12 @@ def test_meta_entities():
     _, m = Works().get(return_meta=True)
     assert "count" in m
     _, m = Funders().get(return_meta=True)
+    assert "count" in m
+
+
+@pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
+def test_meta_entities_deprecated():
+    _, m = Concepts().get(return_meta=True)
     assert "count" in m
 
 
