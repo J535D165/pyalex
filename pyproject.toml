@@ -41,4 +41,4 @@ force-single-line = true
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-addopts = "-v"
+addopts = "-v -W error"

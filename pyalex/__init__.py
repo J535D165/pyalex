@@ -27,8 +27,6 @@ from pyalex.api import Subfield
 from pyalex.api import Subfields
 from pyalex.api import Topic
 from pyalex.api import Topics
-from pyalex.api import Venue
-from pyalex.api import Venues
 from pyalex.api import Work
 from pyalex.api import Works
 from pyalex.api import autocomplete
@@ -46,8 +44,6 @@ __all__ = [
     "Funders",
     "Publishers",
     "Publisher",
-    "Venues",
-    "Venue",
     "Institutions",
     "Institution",
     "Concepts",
