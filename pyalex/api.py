@@ -483,45 +483,26 @@ class autocompletes(BaseOpenAlex):
         )
 
 
-def Venue(*args, **kwargs):  # deprecated
-    # warn about deprecation
-    warnings.warn(
-        "Venue is deprecated. Use Sources instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    return Source(*args, **kwargs)
-
-
-def Venues(*args, **kwargs):  # deprecated
-    # warn about deprecation
-    warnings.warn(
-        "Venues is deprecated. Use Sources instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    return Sources(*args, **kwargs)
-
-
 class Concept(OpenAlexEntity):
-    # warn about deprecation
-    warnings.warn(
-        "Concept is deprecated by OpenAlex and replaced by topics.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "Concept is deprecated by OpenAlex and replaced by topics.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args, **kwargs)
 
 
 class Concepts(BaseOpenAlex):
-    # warn about deprecation
-    warnings.warn(
-        "Concepts is deprecated by OpenAlex and replaced by topics.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     resource_class = Concept
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "Concepts is deprecated by OpenAlex and replaced by topics.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args, **kwargs)
 
 
 def autocomplete(s):

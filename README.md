@@ -99,7 +99,7 @@ Works()["W2741809807"]["open_access"]
 {'is_oa': True, 'oa_status': 'gold', 'oa_url': 'https://doi.org/10.7717/peerj.4375'}
 ```
 
-The previous works also for Authors, Venues, Institutions, Concepts and Topics
+The previous works also for Authors, Sources, Institutions, Concepts and Topics
 
 ```python
 Authors()["A2887243803"]
