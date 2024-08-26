@@ -244,6 +244,17 @@ def test_serializable(tmpdir):
         assert "W4238809453" in json.load(f)["id"]
 
 
+def test_serializable_list(tmpdir):
+    with open(Path(tmpdir, "test.json"), "w") as f:
+        json.dump(Works().get(), f)
+
+    with open(Path(tmpdir, "test.json")) as f:
+        works = [Work(w) for w in json.load(f)]
+
+    assert len(works) == 25
+    assert all(isinstance(w, Work) for w in works)
+
+
 def test_ngrams_without_metadata():
     r = Works()["W2023271753"].ngrams(return_meta=False)
 

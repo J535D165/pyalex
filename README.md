@@ -354,6 +354,18 @@ Works()["W2023271753"].ngrams()
 ```
 
 
+### Serialize
+
+All results from PyAlex can be serialized. For example, save the results to a JSON file:
+
+```python
+with open(Path("works.json"), "w") as f:
+    json.dump(Works().get(), f)
+
+with open(Path("works.json")) as f:
+    works = [Work(w) for w in json.load(f)]
+```
+
 ## Code snippets
 
 A list of awesome use cases of the OpenAlex dataset.
