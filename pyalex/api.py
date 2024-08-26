@@ -93,7 +93,8 @@ def _flatten_kv(d, prefix=None, logical="+"):
 
         return ",".join(t)
     elif isinstance(d, list):
-        return f"{prefix}:{logical.join([f"{_quote_oa_value(i)}" for i in d])}"
+        list_str = logical.join([f"{_quote_oa_value(i)}" for i in d])
+        return f"{prefix}:{list_str}"
     else:
         return f"{prefix}:{_quote_oa_value(d)}"
 
