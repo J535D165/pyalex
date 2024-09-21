@@ -102,7 +102,7 @@ Works()["W2741809807"]["open_access"]
 The previous works also for Authors, Sources, Institutions, Concepts and Topics
 
 ```python
-Authors()["A2887243803"]
+Authors()["A5027479191"]
 Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
 ```
 
@@ -115,7 +115,6 @@ Works().random()
 Authors().random()
 Sources().random()
 Institutions().random()
-Concepts().random()
 Topics().random()
 Publishers().random()
 Funders().random()
