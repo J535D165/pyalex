@@ -358,6 +358,10 @@ Works()["W2023271753"].ngrams()
 All results from PyAlex can be serialized. For example, save the results to a JSON file:
 
 ```python
+import json
+from pathlib import Path
+from pyalex import Work
+
 with open(Path("works.json"), "w") as f:
     json.dump(Works().get(), f)
 
