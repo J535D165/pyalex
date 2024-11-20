@@ -283,21 +283,21 @@ class BaseOpenAlex:
         return self._group_by_results_page(res_json, return_meta)
 
     def _group_by_results_page(self, res_json, return_meta):
-      if self.params and "group-by" in self.params:
-          results = res_json["group_by"]
-      elif "results" in res_json:
-          results = [self.resource_class(ent) for ent in res_json["results"]]
-      elif "id" in res_json:
-          results = self.resource_class(res_json)
-      else:
-          raise ValueError("Unknown response format")
+        if self.params and "group-by" in self.params:
+            results = res_json["group_by"]
+        elif "results" in res_json:
+            results = [self.resource_class(ent) for ent in res_json["results"]]
+        elif "id" in res_json:
+            results = self.resource_class(res_json)
+        else:
+            raise ValueError("Unknown response format")
 
-      # return result and metadata
-      if return_meta:
-          return results, res_json["meta"]
-      else:
-          return results
-        
+        # return result and metadata
+        if return_meta:
+            return results, res_json["meta"]
+        else:
+            return results
+
     def _prepare_get(self, page=None, per_page=None, cursor=None):
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
@@ -317,9 +317,13 @@ class BaseOpenAlex:
 
         return self._group_by_results_page(res_json, return_meta)
 
-    async def get_async(self, session, return_meta=False, page=None, per_page=None, cursor=None):
+    async def get_async(
+        self, session, return_meta=False, page=None, per_page=None, cursor=None
+    ):
         self._prepare_get(page, per_page, cursor)
-        return await self._get_from_url_async(session, self.url, return_meta=return_meta)
+        return await self._get_from_url_async(
+            session, self.url, return_meta=return_meta
+        )
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
         if method == "cursor":
@@ -530,34 +534,43 @@ def autocomplete(s):
 People = Authors
 Journals = Sources
 
-async def concurrent(worker, targets:list[dict], frequency:int=10):
+
+async def concurrent(worker, targets: list[dict], frequency: int = 10):
     # optional imports for asyncio users only
-    import asyncio, time, tqdm.asyncio as tqdm
+    import asyncio
+    import time
+
+    import tqdm.asyncio as tqdm
     from aiohttp import ClientSession
-    from aiohttp_retry import RetryClient, ExponentialRetry
+    from aiohttp_retry import ExponentialRetry
+    from aiohttp_retry import RetryClient
+
     retry_options = ExponentialRetry(
         attempts=config.max_retries,
         start_timeout=config.retry_backoff_factor,
         statuses=config.retry_http_codes,
-        methods=["GET"] )
+        methods=["GET"],
+    )
 
     U = asyncio.Semaphore(frequency)
     t0 = time.time()
 
-    async def q(x:str, S):
-      async with U:
-        nonlocal t0
-        if time.time() - t0 > 1.0:
-          t0 = time.time()
-          for _ in range(frequency - U._value):
-            U.release()
+    async def q(x: str, S):
+        async with U:
+            nonlocal t0
+            if time.time() - t0 > 1.0:
+                t0 = time.time()
+                for _ in range(frequency - U._value):
+                    U.release()
 
-        w = worker(x)
-        return await w.get_async(S)
+            w = worker(x)
+            return await w.get_async(S)
 
     y = []
     async with RetryClient(ClientSession(), retry_options=retry_options) as S:
-      for f in tqdm.tqdm(asyncio.as_completed([q(x, S) for x in targets]), total=len(targets)):
-        y.append(await f)
-    
+        for f in tqdm.tqdm(
+            asyncio.as_completed([q(x, S) for x in targets]), total=len(targets)
+        ):
+            y.append(await f)
+
     return y
