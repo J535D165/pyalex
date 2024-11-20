@@ -430,6 +430,17 @@ import pyalex
 pyalex.config.api_key = "<MY_KEY>"
 ```
 
+### Async requests
+
+To improve performance you may use concurrent requests instead of sequentials but keep in mind that OpenAlex has [rate limits](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication).
+
+```
+from pyalex import Works, concurrent
+worker = lambda x: Works().search_filter( **x )
+targets = [{"title": "science"}, {"title": "fiction"}]
+await concurrent(worker, targets, frequency=10)
+```
+
 ## Alternatives
 
 R users can use the excellent [OpenAlexR](https://github.com/ropensci/openalexR) library.

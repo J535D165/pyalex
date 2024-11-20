@@ -529,3 +529,35 @@ def autocomplete(s):
 # aliases
 People = Authors
 Journals = Sources
+
+async def concurrent(worker, targets:list[dict], frequency:int=10):
+    # optional imports for asyncio users only
+    import asyncio, time, tqdm.asyncio as tqdm
+    from aiohttp import ClientSession
+    from aiohttp_retry import RetryClient, ExponentialRetry
+    retry_options = ExponentialRetry(
+        attempts=config.max_retries,
+        start_timeout=config.retry_backoff_factor,
+        statuses=config.retry_http_codes,
+        methods=["GET"] )
+
+    U = asyncio.Semaphore(frequency)
+    t0 = time.time()
+
+    async def q(x:str, S):
+      async with U:
+        nonlocal t0
+        if time.time() - t0 > 1.0:
+          t0 = time.time()
+          for _ in range(frequency - U._value):
+            U.release()
+
+        w = worker(x)
+        return await w.get_async(S)
+
+    y = []
+    async with RetryClient(ClientSession(), retry_options=retry_options) as S:
+      for f in tqdm.tqdm(asyncio.as_completed([q(x, S) for x in targets]), total=len(targets)):
+        y.append(await f)
+    
+    return y
