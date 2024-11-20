@@ -280,29 +280,34 @@ class BaseOpenAlex:
         res.raise_for_status()
         res_json = res.json()
 
-        # group-by or results page
-        if self.params and "group-by" in self.params:
-            results = res_json["group_by"]
-        elif "results" in res_json:
-            results = [self.resource_class(ent) for ent in res_json["results"]]
-        elif "id" in res_json:
-            results = self.resource_class(res_json)
-        else:
-            raise ValueError("Unknown response format")
+        return self._group_by_results_page(res_json, return_meta)
 
-        # return result and metadata
-        if return_meta:
-            return results, res_json["meta"]
-        else:
-            return results
+    def _group_by_results_page(self, res_json, return_meta):
+      if self.params and "group-by" in self.params:
+          results = res_json["group_by"]
+      elif "results" in res_json:
+          results = [self.resource_class(ent) for ent in res_json["results"]]
+      elif "id" in res_json:
+          results = self.resource_class(res_json)
+      else:
+          raise ValueError("Unknown response format")
 
-    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
+      # return result and metadata
+      if return_meta:
+          return results, res_json["meta"]
+      else:
+          return results
+        
+    def _prepare_get(self, page=None, per_page=None, cursor=None):
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
 
         self._add_params("per-page", per_page)
         self._add_params("page", page)
         self._add_params("cursor", cursor)
+
+    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
+        self._prepare_get(page, per_page, cursor)
         return self._get_from_url(self.url, return_meta=return_meta)
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
