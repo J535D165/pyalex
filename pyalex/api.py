@@ -310,6 +310,17 @@ class BaseOpenAlex:
         self._prepare_get(page, per_page, cursor)
         return self._get_from_url(self.url, return_meta=return_meta)
 
+    async def _get_from_url_async(self, session, url, return_meta=False):
+        async with session.get(url) as res:
+            res.raise_for_status()
+            res_json = await res.json()
+
+        return self._group_by_results_page(res_json, return_meta)
+
+    async def get_async(self, session, return_meta=False, page=None, per_page=None, cursor=None):
+        self._prepare_get(page, per_page, cursor)
+        return await self._get_from_url_async(session, self.url, return_meta=return_meta)
+
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
         if method == "cursor":
             if self.params.get("sample"):
