@@ -442,6 +442,7 @@ R users can use the excellent [OpenAlexR](https://github.com/ropensci/openalexR)
 
 > This library is a community contribution. The authors of this Python library aren't affiliated with OpenAlex.
 
+This library is maintained by [J535D165](https://github.com/J535D165) and [PeterLombaers](https://github.com/PeterLombaers). 
 Feel free to reach out with questions, remarks, and suggestions. The
-[issue tracker](/issues) is a good starting point. You can also email me at
+[issue tracker](/issues) is a good starting point. You can also reach out via
 [jonathandebruinos@gmail.com](mailto:jonathandebruinos@gmail.com).
