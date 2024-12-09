@@ -373,7 +373,7 @@ with open(Path("works.json")) as f:
 
 A list of awesome use cases of the OpenAlex dataset.
 
-### Cited publications (referenced works)
+### Cited publications (works referenced by this paper, outgoing citations)
 
 ```python
 from pyalex import Works
@@ -382,6 +382,13 @@ from pyalex import Works
 w = Works()["W2741809807"]
 
 Works()[w["referenced_works"]]
+```
+
+### Citing publications (other works that reference this paper, incoming citations)
+
+```
+from pyalex import Works
+Works().filter(cites="W2741809807").get()
 ```
 
 ### Get works of a single author
