@@ -373,7 +373,7 @@ with open(Path("works.json")) as f:
 
 A list of awesome use cases of the OpenAlex dataset.
 
-### Cited publications (referenced works)
+### Cited publications (works referenced by this paper, outgoing citations)
 
 ```python
 from pyalex import Works
@@ -382,6 +382,13 @@ from pyalex import Works
 w = Works()["W2741809807"]
 
 Works()[w["referenced_works"]]
+```
+
+### Citing publications (other works that reference this paper, incoming citations)
+
+```
+from pyalex import Works
+Works().filter(cites="W2741809807").get()
 ```
 
 ### Get works of a single author
@@ -442,7 +449,7 @@ R users can use the excellent [OpenAlexR](https://github.com/ropensci/openalexR)
 
 > This library is a community contribution. The authors of this Python library aren't affiliated with OpenAlex.
 
-This library is maintained by [J535D165](https://github.com/J535D165) and [PeterLombaers](https://github.com/PeterLombaers). 
+This library is maintained by [J535D165](https://github.com/J535D165) and [PeterLombaers](https://github.com/PeterLombaers).
 Feel free to reach out with questions, remarks, and suggestions. The
 [issue tracker](/issues) is a good starting point. You can also reach out via
 [jonathandebruinos@gmail.com](mailto:jonathandebruinos@gmail.com).
