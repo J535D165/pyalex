@@ -205,22 +205,20 @@ class Paginator:
         else:
             raise ValueError()
 
-        results, meta = self.endpoint_class.get(
-            return_meta=True, per_page=self.per_page, **pagination_params
-        )
+        r = self.endpoint_class.get(per_page=self.per_page, **pagination_params)
 
         if self.method == "cursor":
-            self._next_value = meta["next_cursor"]
+            self._next_value = r.meta["next_cursor"]
 
         if self.method == "page":
-            if len(results) > 0:
-                self._next_value = meta["page"] + 1
+            if len(r) > 0:
+                self._next_value = r.meta["page"] + 1
             else:
                 self._next_value = None
 
-        self.n = self.n + len(results)
+        self.n = self.n + len(r)
 
-        return results
+        return r
 
 
 class OpenAlexAuth(AuthBase):
@@ -247,6 +245,54 @@ class OpenAlexAuth(AuthBase):
             r.headers["User-Agent"] = self.config.user_agent
 
         return r
+
+
+class ResultList(list):
+    """A list of OpenAlexEntity objects with metadata.
+
+    Attributes:
+        meta: a dictionary with metadata about the results
+        data_attr: the key in the response dictionary that contains the results
+        resource_class: the class to use for each entity in the results
+
+    Arguments:
+        results: a list of OpenAlexEntity objects
+        meta: a dictionary with metadata about the results
+        resource_class: the class to use for each entity in the results
+        data_attr: the key in the response dictionary that contains the results
+
+    Returns:
+        a ResultList object
+    """
+
+    def __init__(self, results, meta, resource_class=None, data_attr="results"):
+        resource_class = resource_class or OpenAlexEntity
+        results_list = [resource_class(ent) for ent in results]
+
+        super().__init__(results_list)
+        self.meta = meta
+        self.data_attr = data_attr
+        self.resource_class = resource_class
+
+    @classmethod
+    def from_results(cls, response, resource_class=None, data_attr="results"):
+        """Create a ResultList from a response dictionary.
+
+        Arguments:
+            response: the response dictionary from the OpenAlex API
+            resource_class: the class to use for each entity in the results
+            data_attr: the key in the response dictionary that contains the results
+
+        Returns:
+            a ResultList object
+
+        """
+        return cls(
+            response[data_attr],
+            response["meta"],
+            resource_class=resource_class,
+            data_attr=data_attr,
+        )
 
 
 class BaseOpenAlex:
@@ -286,7 +332,6 @@ class BaseOpenAlex:
 
         return self._get_from_url(
             f"{self._full_collection_name()}/{_quote_oa_value(record_id)}",
-            return_meta=False,
         )
 
     @property
@@ -311,14 +356,11 @@ class BaseOpenAlex:
         return self._full_collection_name()
 
     def count(self):
-        _, m = self.get(return_meta=True, per_page=1)
+        return self.get(per_page=1).meta["count"]
 
-        return m["count"]
-
-    def _get_from_url(self, url, return_meta=False):
+    def _get_from_url(self, url):
         res = _get_requests_session().get(url, auth=OpenAlexAuth(config))
 
-        # handle query errors
         if res.status_code == 403:
             if (
                 isinstance(res.json()["error"], str)
@@ -329,30 +371,30 @@ class BaseOpenAlex:
         res.raise_for_status()
         res_json = res.json()
 
-        # group-by or results page
         if self.params and "group-by" in self.params:
-            results = res_json["group_by"]
+            return ResultList.from_results(
+                res_json, self.resource_class, data_attr="group_by"
+            )
         elif "results" in res_json:
-            results = [self.resource_class(ent) for ent in res_json["results"]]
+            return ResultList.from_results(res_json, self.resource_class)
         elif "id" in res_json:
-            results = self.resource_class(res_json)
+            return self.resource_class(res_json)
         else:
             raise ValueError("Unknown response format")
 
-        # return result and metadata
-        if return_meta:
-            return results, res_json["meta"]
-        else:
-            return results
-
-    def get(self, return_meta=False, page=None, per_page=None, cursor=None):
+    def get(self, page=None, per_page=None, cursor=None, return_meta=False):
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
+
+        if return_meta:
+            raise DeprecationWarning(
+                "return_meta is deprecated, call .meta on the result"
+            )
 
         self._add_params("per-page", per_page)
         self._add_params("page", page)
         self._add_params("cursor", cursor)
-        return self._get_from_url(self.url, return_meta=return_meta)
+        return self._get_from_url(self.url)
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
         if method == "cursor":
@@ -448,7 +490,7 @@ class Work(OpenAlexEntity):
 
         return super().__getitem__(key)
 
-    def ngrams(self, return_meta=False):
+    def ngrams(self):
         openalex_id = self["id"].split("/")[-1]
         n_gram_url = f"{config.openalex_url}/works/{openalex_id}/ngrams"
 
@@ -456,11 +498,7 @@ class Work(OpenAlexEntity):
         res.raise_for_status()
         results = res.json()
 
-        # return result and metadata
-        if return_meta:
-            return results["ngrams"], results["meta"]
-        else:
-            return results["ngrams"]
+        return ResultList.from_results(results, data_attr="ngrams")
 
 
 class Works(BaseOpenAlex):
@@ -549,9 +587,7 @@ class autocompletes(BaseOpenAlex):
     resource_class = Autocomplete
 
     def __getitem__(self, key):
-        return self._get_from_url(
-            f"{config.openalex_url}/autocomplete?q={key}", return_meta=False
-        )
+        return self._get_from_url(f"{config.openalex_url}/autocomplete?q={key}")
 
 
 class Concept(OpenAlexEntity):
