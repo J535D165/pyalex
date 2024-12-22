@@ -259,12 +259,14 @@ def test_serializable_list(tmpdir):
     assert all(isinstance(w, Work) for w in works)
 
 
+@pytest.mark.skip("This test is not working due to unavailable API.")
 def test_ngrams_without_metadata():
     r = Works()["W2023271753"].ngrams(return_meta=False)
 
     assert len(r) == 1068
 
 
+@pytest.mark.skip("This test is not working due to unavailable API.")
 def test_ngrams_with_metadata():
     r, meta = Works()["W2023271753"].ngrams(return_meta=True)
 
