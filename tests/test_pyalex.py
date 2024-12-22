@@ -117,7 +117,12 @@ def test_multi_works():
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
 
-    assert len(Works()[w["referenced_works"]]) == 25
+    assert len(Works()[w["referenced_works"]]) >= 38
+
+    assert (
+        len(Works().filter_or(openalex_id=w["referenced_works"]).get(per_page=100))
+        >= 38
+    )
 
 
 def test_works_multifilter():
@@ -278,33 +283,80 @@ def test_random_publishers():
 
 
 def test_and_operator():
-    # https://github.com/J535D165/pyalex/issues/11
-    url = "https://api.openalex.org/works?filter=institutions.country_code:tw,institutions.country_code:hk,institutions.country_code:us,publication_year:2022"
+    urls = [
+        "https://api.openalex.org/works?filter=institutions.country_code:tw,institutions.country_code:hk,institutions.country_code:us,publication_year:2022",
+        "https://api.openalex.org/works?filter=institutions.country_code:tw+hk+us,publication_year:2022",
+    ]
 
     assert (
-        url
-        == Works()
+        Works()
         .filter(
             institutions={"country_code": ["tw", "hk", "us"]}, publication_year=2022
         )
         .url
+        in urls
     )
     assert (
-        url
-        == Works()
+        Works()
         .filter(institutions={"country_code": "tw"})
         .filter(institutions={"country_code": "hk"})
         .filter(institutions={"country_code": "us"})
         .filter(publication_year=2022)
         .url
+        in urls
     )
     assert (
-        url
-        == Works()
+        Works()
         .filter(institutions={"country_code": ["tw", "hk"]})
         .filter(institutions={"country_code": "us"})
         .filter(publication_year=2022)
         .url
+        in urls
+    )
+
+
+def test_or_operator():
+    assert (
+        Works()
+        .filter_or(
+            institutions={"country_code": ["tw", "hk", "us"]}, publication_year=2022
+        )
+        .url
+        == "https://api.openalex.org/works?filter=institutions.country_code:tw|hk|us,publication_year:2022"
+    )
+
+
+def test_not_operator():
+    assert (
+        Works()
+        .filter_not(institutions={"country_code": "us"})
+        .filter(publication_year=2022)
+        .url
+        == "https://api.openalex.org/works?filter=institutions.country_code:!us,publication_year:2022"
+    )
+
+
+def test_not_operator_list():
+    assert (
+        Works()
+        .filter_not(institutions={"country_code": ["tw", "hk", "us"]})
+        .filter(publication_year=2022)
+        .url
+        == "https://api.openalex.org/works?filter=institutions.country_code:!tw+!hk+!us,publication_year:2022"
+    )
+
+
+@pytest.mark.skip("Wait for feedback on issue by OpenAlex")
+def test_combined_operators():
+    # works:
+    # https://api.openalex.org/works?filter=publication_year:>2022,publication_year:!2023
+
+    # doesn't work
+    # https://api.openalex.org/works?filter=publication_year:>2022+!2023
+
+    assert (
+        Works().filter_gt(publication_year=2022).filter_not(publication_year=2023).url
+        == "https://api.openalex.org/works?filter=publication_year:>2022+!2023"
     )
 
 
@@ -359,11 +411,10 @@ def test_filter_urlencoding():
     )
 
 
-@pytest.mark.skip("This test is not working due to inconsistencies in the API.")
 def test_urlencoding_list():
     assert (
         Works()
-        .filter(
+        .filter_or(
             doi=[
                 "https://doi.org/10.1207/s15327809jls0703&4_2",
                 "https://doi.org/10.1001/jama.264.8.944b",

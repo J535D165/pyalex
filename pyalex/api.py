@@ -31,6 +31,32 @@ config = AlexConfig(
 )
 
 
+class or_(dict):
+    pass
+
+
+class _LogicalExpression:
+    token = None
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self) -> str:
+        return f"{self.token}{self.value}"
+
+
+class not_(_LogicalExpression):
+    token = "!"
+
+
+class gt_(_LogicalExpression):
+    token = ">"
+
+
+class lt_(_LogicalExpression):
+    token = "<"
+
+
 def _quote_oa_value(v):
     """Prepare a value for the OpenAlex API.
 
@@ -41,30 +67,40 @@ def _quote_oa_value(v):
     if isinstance(v, bool):
         return str(v).lower()
 
+    if isinstance(v, _LogicalExpression) and isinstance(v.value, str):
+        v.value = quote_plus(v.value)
+        return v
+
     if isinstance(v, str):
         return quote_plus(v)
 
     return v
 
 
-def _flatten_kv(d, prefix=""):
+def _flatten_kv(d, prefix=None, logical="+"):
+    if prefix is None and not isinstance(d, dict):
+        raise ValueError("prefix should be set if d is not a dict")
+
     if isinstance(d, dict):
+        logical_subd = "|" if isinstance(d, or_) else logical
+
         t = []
         for k, v in d.items():
-            if isinstance(v, list):
-                t.extend([f"{prefix}.{k}:{_quote_oa_value(i)}" for i in v])
-            else:
-                new_prefix = f"{prefix}.{k}" if prefix else f"{k}"
-                x = _flatten_kv(v, prefix=new_prefix)
-                t.append(x)
+            x = _flatten_kv(
+                v, prefix=f"{prefix}.{k}" if prefix else f"{k}", logical=logical_subd
+            )
+            t.append(x)
 
         return ",".join(t)
+    elif isinstance(d, list):
+        list_str = logical.join([f"{_quote_oa_value(i)}" for i in d])
+        return f"{prefix}:{list_str}"
     else:
         return f"{prefix}:{_quote_oa_value(d)}"
 
 
 def _params_merge(params, add_params):
-    for k, _v in add_params.items():
+    for k in add_params.keys():
         if (
             k in params
             and isinstance(params[k], dict)
@@ -111,6 +147,18 @@ def invert_abstract(inv_index):
     if inv_index is not None:
         l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
         return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
+
+
+def _wrap_values_nested_dict(d, func):
+    for k, v in d.items():
+        if isinstance(v, dict):
+            d[k] = _wrap_values_nested_dict(v, func)
+        elif isinstance(v, list):
+            d[k] = [func(i) for i in v]
+        else:
+            d[k] = func(v)
+
+    return d
 
 
 class QueryError(ValueError):
@@ -207,9 +255,6 @@ class BaseOpenAlex:
     def __init__(self, params=None):
         self.params = params
 
-    def _get_multi_items(self, record_list):
-        return self.filter(openalex_id="|".join(record_list)).get()
-
     def _full_collection_name(self):
         if self.params is not None and "q" in self.params.keys():
             return (
@@ -234,10 +279,14 @@ class BaseOpenAlex:
 
     def __getitem__(self, record_id):
         if isinstance(record_id, list):
-            return self._get_multi_items(record_id)
+            if len(record_id) > 100:
+                raise ValueError("OpenAlex does not support more than 100 ids")
+
+            return self.filter_or(openalex_id=record_id).get(per_page=len(record_id))
 
         return self._get_from_url(
-            f"{self._full_collection_name()}/{record_id}", return_meta=False
+            f"{self._full_collection_name()}/{_quote_oa_value(record_id)}",
+            return_meta=False,
         )
 
     @property
@@ -322,7 +371,10 @@ class BaseOpenAlex:
     def random(self):
         return self.__getitem__("random")
 
-    def _add_params(self, argument, new_params):
+    def _add_params(self, argument, new_params, raise_if_exists=False):
+        if raise_if_exists:
+            raise NotImplementedError("raise_if_exists is not implemented")
+
         if self.params is None:
             self.params = {argument: new_params}
         elif argument in self.params and isinstance(self.params[argument], dict):
@@ -334,6 +386,25 @@ class BaseOpenAlex:
 
     def filter(self, **kwargs):
         self._add_params("filter", kwargs)
+        return self
+
+    def filter_and(self, **kwargs):
+        return self.filter(**kwargs)
+
+    def filter_or(self, **kwargs):
+        self._add_params("filter", or_(kwargs), raise_if_exists=False)
+        return self
+
+    def filter_not(self, **kwargs):
+        self._add_params("filter", _wrap_values_nested_dict(kwargs, not_))
+        return self
+
+    def filter_gt(self, **kwargs):
+        self._add_params("filter", _wrap_values_nested_dict(kwargs, gt_))
+        return self
+
+    def filter_lt(self, **kwargs):
+        self._add_params("filter", _wrap_values_nested_dict(kwargs, lt_))
         return self
 
     def search_filter(self, **kwargs):
