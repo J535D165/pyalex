@@ -216,7 +216,8 @@ def test_referenced_works():
     )
 
     assert set([w["id"] for w in w_new]).difference(set(w["referenced_works"])) == set()
-    # assert set(w["referenced_works"]).difference(set([w["id"] for w in w_new])) == set()
+    # assert set(w["referenced_works"]).difference(set([w["id"] for w in w_new]))
+    #  == set()
 
     assert m["count"] < len(w["referenced_works"])
 
@@ -252,12 +253,25 @@ def test_serializable(tmpdir):
         assert "W4238809453" in json.load(f)["id"]
 
 
+def test_serializable_list(tmpdir):
+    with open(Path(tmpdir, "test.json"), "w") as f:
+        json.dump(Works().get(), f)
+
+    with open(Path(tmpdir, "test.json")) as f:
+        works = [Work(w) for w in json.load(f)]
+
+    assert len(works) == 25
+    assert all(isinstance(w, Work) for w in works)
+
+
+@pytest.mark.skip("This test is not working due to unavailable API.")
 def test_ngrams_without_metadata():
     r = Works()["W2023271753"].ngrams(return_meta=False)
 
     assert len(r) == 1068
 
 
+@pytest.mark.skip("This test is not working due to unavailable API.")
 def test_ngrams_with_metadata():
     r, meta = Works()["W2023271753"].ngrams(return_meta=True)
 

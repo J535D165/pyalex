@@ -102,7 +102,7 @@ Works()["W2741809807"]["open_access"]
 The previous works also for Authors, Sources, Institutions, Concepts and Topics
 
 ```python
-Authors()["A2887243803"]
+Authors()["A5027479191"]
 Authors()["https://orcid.org/0000-0002-4297-0502"]  # same
 ```
 
@@ -115,7 +115,6 @@ Works().random()
 Authors().random()
 Sources().random()
 Institutions().random()
-Concepts().random()
 Topics().random()
 Publishers().random()
 Funders().random()
@@ -354,11 +353,27 @@ Works()["W2023271753"].ngrams()
 ```
 
 
+### Serialize
+
+All results from PyAlex can be serialized. For example, save the results to a JSON file:
+
+```python
+import json
+from pathlib import Path
+from pyalex import Work
+
+with open(Path("works.json"), "w") as f:
+    json.dump(Works().get(), f)
+
+with open(Path("works.json")) as f:
+    works = [Work(w) for w in json.load(f)]
+```
+
 ## Code snippets
 
 A list of awesome use cases of the OpenAlex dataset.
 
-### Cited publications (referenced works)
+### Cited publications (works referenced by this paper, outgoing citations)
 
 ```python
 from pyalex import Works
@@ -367,6 +382,13 @@ from pyalex import Works
 w = Works()["W2741809807"]
 
 Works()[w["referenced_works"]]
+```
+
+### Citing publications (other works that reference this paper, incoming citations)
+
+```
+from pyalex import Works
+Works().filter(cites="W2741809807").get()
 ```
 
 ### Get works of a single author
@@ -427,6 +449,7 @@ R users can use the excellent [OpenAlexR](https://github.com/ropensci/openalexR)
 
 > This library is a community contribution. The authors of this Python library aren't affiliated with OpenAlex.
 
+This library is maintained by [J535D165](https://github.com/J535D165) and [PeterLombaers](https://github.com/PeterLombaers).
 Feel free to reach out with questions, remarks, and suggestions. The
-[issue tracker](/issues) is a good starting point. You can also email me at
+[issue tracker](/issues) is a good starting point. You can also reach out via
 [jonathandebruinos@gmail.com](mailto:jonathandebruinos@gmail.com).

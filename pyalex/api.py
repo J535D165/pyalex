@@ -23,7 +23,7 @@ class AlexConfig(dict):
 config = AlexConfig(
     email=None,
     api_key=None,
-    user_agent="pyalex/{__version__}",
+    user_agent=f"pyalex/{__version__}",
     openalex_url="https://api.openalex.org",
     max_retries=0,
     retry_backoff_factor=0.1,
