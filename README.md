@@ -386,7 +386,7 @@ Works()[w["referenced_works"]]
 
 ### Citing publications (other works that reference this paper, incoming citations)
 
-```
+```python
 from pyalex import Works
 Works().filter(cites="W2741809807").get()
 ```
