@@ -30,6 +30,7 @@ from pyalex.api import Topics
 from pyalex.api import Work
 from pyalex.api import Works
 from pyalex.api import autocomplete
+from pyalex.api import concurrent
 from pyalex.api import config
 from pyalex.api import invert_abstract
 
@@ -61,4 +62,5 @@ __all__ = [
     "autocomplete",
     "config",
     "invert_abstract",
+    "concurrent",
 ]
