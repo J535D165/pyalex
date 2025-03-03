@@ -266,13 +266,12 @@ class BaseOpenAlex:
     def __getattr__(self, key):
         if key == "groupby":
             raise AttributeError(
-                "Object has no attribute 'groupby'. " "Did you mean 'group_by'?"
+                "Object has no attribute 'groupby'. Did you mean 'group_by'?"
             )
 
         if key == "filter_search":
             raise AttributeError(
-                "Object has no attribute 'filter_search'. "
-                "Did you mean 'search_filter'?"
+                "Object has no attribute 'filter_search'. Did you mean 'search_filter'?"
             )
 
         return getattr(self, key)
