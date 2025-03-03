@@ -873,17 +873,8 @@ class BaseOpenAlex:
             return resp_list
 
 
-# The API
-
-
 class Work(OpenAlexEntity):
-    """Class representing a work entity in OpenAlex.
-
-    Methods
-    -------
-    ngrams(return_meta=False)
-        Get n-grams for the work.
-    """
+    """Class representing a work entity in OpenAlex."""
 
     def __getitem__(self, key):
         if key == "abstract":
