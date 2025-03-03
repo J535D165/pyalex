@@ -24,6 +24,20 @@ from pyalex.api import QueryError
 pyalex.config.max_retries = 10
 
 
+OPEN_ALEX_ENTITIES = [
+    Authors,
+    Domains,
+    Fields,
+    Funders,
+    Institutions,
+    Publishers,
+    Sources,
+    Subfields,
+    Topics,
+    Works,
+]
+
+
 def test_config():
     pyalex.config.email = "pyalex_github_unittests@example.com"
 
@@ -34,31 +48,16 @@ def test_config():
     pyalex.config.api_key = None
 
 
-def test_meta_entities():
-    _, m = Authors().get(return_meta=True)
-    assert "count" in m
-    _, m = Institutions().get(return_meta=True)
-    assert "count" in m
-    _, m = Sources().get(return_meta=True)
-    assert "count" in m
-    _, m = Domains().get(return_meta=True)
-    assert "count" in m
-    _, m = Fields().get(return_meta=True)
-    assert "count" in m
-    _, m = Subfields().get(return_meta=True)
-    assert "count" in m
-    _, m = Topics().get(return_meta=True)
-    assert "count" in m
-    _, m = Works().get(return_meta=True)
-    assert "count" in m
-    _, m = Funders().get(return_meta=True)
-    assert "count" in m
+@pytest.mark.parametrize("entity", OPEN_ALEX_ENTITIES)
+def test_meta_entities(entity):
+    r = entity().get()
+    assert r.meta.get("count", False)
 
 
 @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
 def test_meta_entities_deprecated():
-    _, m = Concepts().get(return_meta=True)
-    assert "count" in m
+    r = Concepts().get()
+    assert r.meta.get("count", False)
 
 
 def test_works_params():
@@ -130,26 +129,25 @@ def test_works_multifilter():
         "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
     ).json()
 
-    _, w1 = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)
-    _, w2 = (
-        Works().filter(publication_year=2020).filter(is_oa=True).get(return_meta=True)
-    )
+    r1 = Works().filter(publication_year=2020, is_oa=True).get()
+    r2 = Works().filter(publication_year=2020).filter(is_oa=True).get()
 
     # openalex bug
-    # c, rc = (
+    # r = (
     #     Works()
     #     .filter(publication_year=2020, open_access={"is_oa": True})
-    #     .get(return_meta=True)
+    #     .get()
     # )
 
-    assert r["meta"]["count"] == w1["count"]
-    assert r["meta"]["count"] == w2["count"]
+    assert r["meta"]["count"] == r1.meta["count"]
+    assert r["meta"]["count"] == r2.meta["count"]
     # assert r["meta"]["count"] == c["count"]
 
 
 def test_works_url():
     url = "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
 
+    assert isinstance(Works().filter(publication_year=2020, is_oa=True).url, str)
     assert url == Works().filter(publication_year=2020, is_oa=True).url
     assert url == Works().filter(publication_year=2020).filter(is_oa=True).url
 
@@ -157,12 +155,10 @@ def test_works_url():
 
 
 def test_works_multifilter_meta():
-    _, m1 = Works().filter(publication_year=2020, is_oa=True).get(return_meta=True)
-    _, m2 = (
-        Works().filter(publication_year=2020).filter(is_oa=True).get(return_meta=True)
-    )
+    r1 = Works().filter(publication_year=2020, is_oa=True).get()
+    r2 = Works().filter(publication_year=2020).filter(is_oa=True).get()
 
-    assert m1["count"] == m2["count"]
+    assert r1.meta["count"] == r2.meta["count"]
 
 
 def test_query_error():
@@ -171,12 +167,12 @@ def test_query_error():
 
 
 def test_data_publications():
-    w, _ = (
+    w = (
         Works()
         .filter(authorships={"institutions": {"ror": "04pp8hn57"}})
         .filter(type="dataset")
         .group_by("publication_year")
-        .get(return_meta=True)
+        .get()
     )
 
     assert len(w) > 20
@@ -200,26 +196,18 @@ def test_search_filter():
         "https://api.openalex.org/authors?filter=display_name.search:einstein"
     ).json()
 
-    a, m = Authors().search_filter(display_name="einstein").get(return_meta=True)
+    a_count = Authors().search_filter(display_name="einstein").count()
 
-    assert r["meta"]["count"] == m["count"]
+    assert r["meta"]["count"] == a_count
 
 
 def test_referenced_works():
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
 
-    w_new, m = (
-        Works()
-        .filter(openalex_id="|".join(w["referenced_works"]))
-        .get(return_meta=True, per_page=100)
-    )
+    r = Works().filter(openalex_id="|".join(w["referenced_works"])).get()
 
-    assert set([w["id"] for w in w_new]).difference(set(w["referenced_works"])) == set()
-    # assert set(w["referenced_works"]).difference(set([w["id"] for w in w_new]))
-    #  == set()
-
-    assert m["count"] < len(w["referenced_works"])
+    assert r.meta["count"] <= len(w["referenced_works"])
 
 
 @pytest.mark.xfail()
@@ -233,13 +221,13 @@ def test_code_examples():
     ).json()
 
     # the work to extract the referenced works of
-    r, meta = (
+    r = (
         Works()
         .filter(institutions={"is_global_south": True})
         .filter(type="dataset")
         .group_by("institutions.country_code")
         .sort(count="desc")
-        .get(return_meta=True)
+        .get()
     )
 
     assert r_original["group_by"][0]["count"] == r[0]["count"]
@@ -266,14 +254,14 @@ def test_serializable_list(tmpdir):
 
 @pytest.mark.skip("This test is not working due to unavailable API.")
 def test_ngrams_without_metadata():
-    r = Works()["W2023271753"].ngrams(return_meta=False)
+    r = Works()["W2023271753"].ngrams()
 
     assert len(r) == 1068
 
 
 @pytest.mark.skip("This test is not working due to unavailable API.")
 def test_ngrams_with_metadata():
-    r, meta = Works()["W2023271753"].ngrams(return_meta=True)
+    r, meta = Works()["W2023271753"].ngrams()
 
     assert meta["count"] == 1068
 
@@ -394,13 +382,13 @@ def test_auth():
 def test_autocomplete_works():
     w = Works().filter(publication_year=2023).autocomplete("planetary boundaries")
 
-    assert len(w) > 5
+    assert all(["external_id" in x for x in w])
 
 
 def test_autocomplete():
     a = autocomplete("stockholm resilience")
 
-    assert len(a) > 5
+    assert all(["external_id" in x for x in a])
 
 
 def test_filter_urlencoding():

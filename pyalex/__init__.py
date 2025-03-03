@@ -18,6 +18,7 @@ from pyalex.api import Funders
 from pyalex.api import Institution
 from pyalex.api import Institutions
 from pyalex.api import Journals
+from pyalex.api import OpenAlexResponseList
 from pyalex.api import People
 from pyalex.api import Publisher
 from pyalex.api import Publishers
@@ -61,4 +62,5 @@ __all__ = [
     "autocomplete",
     "config",
     "invert_abstract",
+    "OpenAlexResponseList",
 ]
