@@ -304,9 +304,7 @@ class BaseOpenAlex:
             raise ValueError("record_id should be a string or a list of strings")
 
     def _url_query(self):
-        if isinstance(self.params, str):
-            return _quote_oa_value(self.params)
-        elif isinstance(self.params, list):
+        if isinstance(self.params, list):
             return self.filter_or(openalex_id=self.params)
         elif isinstance(self.params, dict):
             l_params = []
@@ -330,16 +328,16 @@ class BaseOpenAlex:
 
     @property
     def url(self):
-        return urlunparse(
-            (
-                "https",
-                "api.openalex.org",
-                self.__class__.__name__.lower(),
-                "",
-                self._url_query(),
-                "",
-            )
-        )
+        base_path = self.__class__.__name__.lower()
+
+        if isinstance(self.params, str):
+            path = f"{base_path}/{_quote_oa_value(self.params)}"
+            query = ""
+        else:
+            path = base_path
+            query = self._url_query()
+
+        return urlunparse(("https", "api.openalex.org", path, "", query, ""))
 
     def count(self):
         return self.get(per_page=1).meta["count"]
