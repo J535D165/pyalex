@@ -477,7 +477,10 @@ class BaseOpenAlex:
 
     @property
     def url(self):
-        """Construct the URL for the API request.
+        """Return the URL for the API request.
+
+        The URL doens't include the identification, authentication,
+        and pagination parameters.
 
         Returns
         -------
