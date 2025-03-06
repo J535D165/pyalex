@@ -186,11 +186,10 @@ class OpenAlexResponseList(list):
         a OpenAlexResponseList object
     """
 
-    def __init__(self, results, meta=None, resource_class=None):
+    def __init__(self, results, meta=None, resource_class=OpenAlexEntity):
         self.resource_class = resource_class
         self.meta = meta
 
-        resource_class = resource_class or OpenAlexEntity
         super().__init__([resource_class(ent) for ent in results])
 
 
