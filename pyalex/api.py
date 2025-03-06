@@ -14,6 +14,26 @@ except ImportError:
 
 
 class AlexConfig(dict):
+    """Configuration class for OpenAlex API.
+
+    Attributes
+    ----------
+    email : str
+        Email address for API requests.
+    api_key : str
+        API key for authentication.
+    user_agent : str
+        User agent string for API requests.
+    openalex_url : str
+        Base URL for OpenAlex API.
+    max_retries : int
+        Maximum number of retries for API requests.
+    retry_backoff_factor : float
+        Backoff factor for retries.
+    retry_http_codes : list
+        List of HTTP status codes to retry on.
+    """
+
     def __getattr__(self, key):
         return super().__getitem__(key)
 
@@ -33,10 +53,22 @@ config = AlexConfig(
 
 
 class or_(dict):
+    """Logical OR expression class."""
+
     pass
 
 
 class _LogicalExpression:
+    """Base class for logical expressions.
+
+    Attributes
+    ----------
+    token : str
+        Token representing the logical operation.
+    value : any
+        Value to be used in the logical expression.
+    """
+
     token = None
 
     def __init__(self, value):
@@ -47,14 +79,20 @@ class _LogicalExpression:
 
 
 class not_(_LogicalExpression):
+    """Logical NOT expression class."""
+
     token = "!"
 
 
 class gt_(_LogicalExpression):
+    """Logical greater than expression class."""
+
     token = ">"
 
 
 class lt_(_LogicalExpression):
+    """Logical less than expression class."""
+
     token = "<"
 
 
@@ -62,6 +100,16 @@ def _quote_oa_value(v):
     """Prepare a value for the OpenAlex API.
 
     Applies URL encoding to strings and converts booleans to lowercase strings.
+
+    Parameters
+    ----------
+    v : any
+        Value to be prepared.
+
+    Returns
+    -------
+    any
+        Prepared value.
     """
 
     # workaround for bug https://groups.google.com/u/1/g/openalex-users/c/t46RWnzZaXc
@@ -79,6 +127,22 @@ def _quote_oa_value(v):
 
 
 def _flatten_kv(d, prefix=None, logical="+"):
+    """Flatten a dictionary into a key-value string for the OpenAlex API.
+
+    Parameters
+    ----------
+    d : dict
+        Dictionary to be flattened.
+    prefix : str, optional
+        Prefix for the keys.
+    logical : str, optional
+        Logical operator to join values.
+
+    Returns
+    -------
+    str
+        Flattened key-value string.
+    """
     if prefix is None and not isinstance(d, dict):
         raise ValueError("prefix should be set if d is not a dict")
 
@@ -101,6 +165,15 @@ def _flatten_kv(d, prefix=None, logical="+"):
 
 
 def _params_merge(params, add_params):
+    """Merge additional parameters into existing parameters.
+
+    Parameters
+    ----------
+    params : dict
+        Existing parameters.
+    add_params : dict
+        Additional parameters to be merged.
+    """
     for k in add_params.keys():
         if (
             k in params
@@ -129,6 +202,13 @@ def _params_merge(params, add_params):
 
 
 def _get_requests_session():
+    """Create a Requests session with automatic retry.
+
+    Returns
+    -------
+    requests.Session
+        Requests session with retry configuration.
+    """
     # create an Requests Session with automatic retry:
     requests_session = requests.Session()
     retries = Retry(
@@ -145,12 +225,38 @@ def _get_requests_session():
 
 
 def invert_abstract(inv_index):
+    """Invert OpenAlex abstract index.
+
+    Parameters
+    ----------
+    inv_index : dict
+        Inverted index of the abstract.
+
+    Returns
+    -------
+    str
+        Inverted abstract.
+    """
     if inv_index is not None:
         l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
         return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
 
 
 def _wrap_values_nested_dict(d, func):
+    """Apply a function to all values in a nested dictionary.
+
+    Parameters
+    ----------
+    d : dict
+        Nested dictionary.
+    func : function
+        Function to apply to the values.
+
+    Returns
+    -------
+    dict
+        Dictionary with the function applied to the values.
+    """
     for k, v in d.items():
         if isinstance(v, dict):
             d[k] = _wrap_values_nested_dict(v, func)
@@ -163,10 +269,14 @@ def _wrap_values_nested_dict(d, func):
 
 
 class QueryError(ValueError):
+    """Exception raised for errors in the query."""
+
     pass
 
 
 class OpenAlexEntity(dict):
+    """Base class for OpenAlex entities."""
+
     pass
 
 
@@ -194,6 +304,29 @@ class OpenAlexResponseList(list):
 
 
 class Paginator:
+    """Paginator for OpenAlex API results.
+
+    Attributes
+    ----------
+    VALUE_CURSOR_START : str
+        Starting value for cursor pagination.
+    VALUE_NUMBER_START : int
+        Starting value for page pagination.
+
+    Parameters
+    ----------
+    endpoint_class : class
+        Class of the endpoint to paginate.
+    method : str, optional
+        Pagination method ('cursor' or 'page').
+    value : any, optional
+        Starting value for pagination.
+    per_page : int, optional
+        Number of results per page.
+    n_max : int, optional
+        Maximum number of results.
+    """
+
     VALUE_CURSOR_START = "*"
     VALUE_NUMBER_START = 1
 
@@ -246,13 +379,14 @@ class Paginator:
 
 
 class OpenAlexAuth(AuthBase):
-    """OpenAlex auth class based on requests auth
+    """OpenAlex auth class based on requests auth.
 
-    Includes the email, api_key and user-agent headers.
+    Includes the email, api_key, and user-agent headers.
 
-    arguments:
-        config: an AlexConfig object
-
+    Parameters
+    ----------
+    config : AlexConfig
+        Configuration object for OpenAlex API.
     """
 
     def __init__(self, config):
@@ -272,7 +406,13 @@ class OpenAlexAuth(AuthBase):
 
 
 class BaseOpenAlex:
-    """Base class for OpenAlex objects."""
+    """Base class for OpenAlex objects.
+
+    Parameters
+    ----------
+    params : dict, optional
+        Parameters for the API request.
+    """
 
     def __init__(self, params=None):
         self.params = params
@@ -327,6 +467,17 @@ class BaseOpenAlex:
 
     @property
     def url(self):
+        """Return the URL for the API request.
+
+        The URL doens't include the identification, authentication,
+        and pagination parameters.
+
+
+        Returns
+        -------
+        str
+            URL for the API request.
+        """
         base_path = self.__class__.__name__.lower()
 
         if isinstance(self.params, str):
@@ -339,6 +490,13 @@ class BaseOpenAlex:
         return urlunparse(("https", "api.openalex.org", path, "", query, ""))
 
     def count(self):
+        """Get the count of results.
+
+        Returns
+        -------
+        int
+            Count of results.
+        """
         return self.get(per_page=1).meta["count"]
 
     def _get_from_url(self, url):
@@ -389,6 +547,26 @@ class BaseOpenAlex:
             return resp_list
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
+        """Paginate results from the API.
+
+        Parameters
+        ----------
+        method : str, optional
+            Pagination method ('cursor' or 'page').
+        page : int, optional
+            Page number for pagination.
+        per_page : int, optional
+            Number of results per page.
+        cursor : str, optional
+            Cursor for pagination.
+        n_max : int, optional
+            Maximum number of results.
+
+        Returns
+        -------
+        Paginator
+            Paginator object.
+        """
         if method == "cursor":
             if self.params.get("sample"):
                 raise ValueError("method should be 'page' when using sample")
@@ -403,9 +581,27 @@ class BaseOpenAlex:
         )
 
     def random(self):
+        """Get a random result.
+
+        Returns
+        -------
+        OpenAlexEntity
+            Random result.
+        """
         return self.__getitem__("random")
 
     def _add_params(self, argument, new_params, raise_if_exists=False):
+        """Add parameters to the API request.
+
+        Parameters
+        ----------
+        argument : str
+            Parameter name.
+        new_params : any
+            Parameter value.
+        raise_if_exists : bool, optional
+            Whether to raise an error if the parameter already exists.
+        """
         if raise_if_exists:
             raise NotImplementedError("raise_if_exists is not implemented")
 
@@ -419,55 +615,215 @@ class BaseOpenAlex:
         logging.debug("Params updated:", self.params)
 
     def filter(self, **kwargs):
+        """Add filter parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Filter parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("filter", kwargs)
         return self
 
     def filter_and(self, **kwargs):
+        """Add AND filter parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Filter parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         return self.filter(**kwargs)
 
     def filter_or(self, **kwargs):
+        """Add OR filter parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Filter parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("filter", or_(kwargs), raise_if_exists=False)
         return self
 
     def filter_not(self, **kwargs):
+        """Add NOT filter parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Filter parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("filter", _wrap_values_nested_dict(kwargs, not_))
         return self
 
     def filter_gt(self, **kwargs):
+        """Add greater than filter parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Filter parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("filter", _wrap_values_nested_dict(kwargs, gt_))
         return self
 
     def filter_lt(self, **kwargs):
+        """Add less than filter parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Filter parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("filter", _wrap_values_nested_dict(kwargs, lt_))
         return self
 
     def search_filter(self, **kwargs):
+        """Add search filter parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Filter parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("filter", {f"{k}.search": v for k, v in kwargs.items()})
         return self
 
     def sort(self, **kwargs):
+        """Add sort parameters to the API request.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Sort parameters.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("sort", kwargs)
         return self
 
     def group_by(self, group_key):
+        """Add group-by parameters to the API request.
+
+        Parameters
+        ----------
+        group_key : str
+            Group-by key.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("group-by", group_key)
         return self
 
     def search(self, s):
+        """Add search parameters to the API request.
+
+        Parameters
+        ----------
+        s : str
+            Search string.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("search", s)
         return self
 
     def sample(self, n, seed=None):
+        """Add sample parameters to the API request.
+
+        Parameters
+        ----------
+        n : int
+            Number of samples.
+        seed : int, optional
+            Seed for sampling.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("sample", n)
         self._add_params("seed", seed)
         return self
 
     def select(self, s):
+        """Add select parameters to the API request.
+
+        Parameters
+        ----------
+        s : str
+            Select string.
+
+        Returns
+        -------
+        BaseOpenAlex
+            Updated object.
+        """
         self._add_params("select", s)
         return self
 
     def autocomplete(self, s, return_meta=False):
-        """autocomplete the string s, for a specific type of entity"""
+        """Return the OpenAlex autocomplete results.
+
+        Parameters
+        ----------
+        s : str
+            String to autocomplete.
+        return_meta : bool, optional
+            Whether to return metadata.
+
+        Returns
+        -------
+        OpenAlexResponseList
+            List of autocomplete results.
+        """
+
         self._add_params("q", s)
 
         resp_list = self._get_from_url(
@@ -498,6 +854,8 @@ class BaseOpenAlex:
 
 
 class Work(OpenAlexEntity):
+    """Class representing a work entity in OpenAlex."""
+
     def __getitem__(self, key):
         if key == "abstract":
             return invert_abstract(self["abstract_inverted_index"])
@@ -505,6 +863,18 @@ class Work(OpenAlexEntity):
         return super().__getitem__(key)
 
     def ngrams(self, return_meta=False):
+        """Get n-grams for the work.
+
+        Parameters
+        ----------
+        return_meta : bool, optional
+            Whether to return metadata.
+
+        Returns
+        -------
+        OpenAlexResponseList
+            List of n-grams.
+        """
         openalex_id = self["id"].split("/")[-1]
         n_gram_url = f"{config.openalex_url}/works/{openalex_id}/ngrams"
 
@@ -526,87 +896,127 @@ class Work(OpenAlexEntity):
 
 
 class Works(BaseOpenAlex):
+    """Class representing a collection of work entities in OpenAlex."""
+
     resource_class = Work
 
 
 class Author(OpenAlexEntity):
+    """Class representing an author entity in OpenAlex."""
+
     pass
 
 
 class Authors(BaseOpenAlex):
+    """Class representing a collection of author entities in OpenAlex."""
+
     resource_class = Author
 
 
 class Source(OpenAlexEntity):
+    """Class representing a source entity in OpenAlex."""
+
     pass
 
 
 class Sources(BaseOpenAlex):
+    """Class representing a collection of source entities in OpenAlex."""
+
     resource_class = Source
 
 
 class Institution(OpenAlexEntity):
+    """Class representing an institution entity in OpenAlex."""
+
     pass
 
 
 class Institutions(BaseOpenAlex):
+    """Class representing a collection of institution entities in OpenAlex."""
+
     resource_class = Institution
 
 
 class Domain(OpenAlexEntity):
+    """Class representing a domain entity in OpenAlex."""
+
     pass
 
 
 class Domains(BaseOpenAlex):
+    """Class representing a collection of domain entities in OpenAlex."""
+
     resource_class = Domain
 
 
 class Field(OpenAlexEntity):
+    """Class representing a field entity in OpenAlex."""
+
     pass
 
 
 class Fields(BaseOpenAlex):
+    """Class representing a collection of field entities in OpenAlex."""
+
     resource_class = Field
 
 
 class Subfield(OpenAlexEntity):
+    """Class representing a subfield entity in OpenAlex."""
+
     pass
 
 
 class Subfields(BaseOpenAlex):
+    """Class representing a collection of subfield entities in OpenAlex."""
+
     resource_class = Subfield
 
 
 class Topic(OpenAlexEntity):
+    """Class representing a topic entity in OpenAlex."""
+
     pass
 
 
 class Topics(BaseOpenAlex):
+    """Class representing a collection of topic entities in OpenAlex."""
+
     resource_class = Topic
 
 
 class Publisher(OpenAlexEntity):
+    """Class representing a publisher entity in OpenAlex."""
+
     pass
 
 
 class Publishers(BaseOpenAlex):
+    """Class representing a collection of publisher entities in OpenAlex."""
+
     resource_class = Publisher
 
 
 class Funder(OpenAlexEntity):
+    """Class representing a funder entity in OpenAlex."""
+
     pass
 
 
 class Funders(BaseOpenAlex):
+    """Class representing a collection of funder entities in OpenAlex."""
+
     resource_class = Funder
 
 
 class Autocomplete(OpenAlexEntity):
+    """Class representing an autocomplete entity in OpenAlex."""
+
     pass
 
 
 class autocompletes(BaseOpenAlex):
-    """Class to autocomplete without being based on the type of entity"""
+    """Class to autocomplete without being based on the type of entity."""
 
     resource_class = Autocomplete
 
@@ -626,6 +1036,8 @@ class autocompletes(BaseOpenAlex):
 
 
 class Concept(OpenAlexEntity):
+    """Class representing a concept entity in OpenAlex."""
+
     def __init__(self, *args, **kwargs):
         warnings.warn(
             "Concept is deprecated by OpenAlex and replaced by topics.",
@@ -636,6 +1048,8 @@ class Concept(OpenAlexEntity):
 
 
 class Concepts(BaseOpenAlex):
+    """Class representing a collection of concept entities in OpenAlex."""
+
     resource_class = Concept
 
     def __init__(self, *args, **kwargs):
@@ -648,7 +1062,18 @@ class Concepts(BaseOpenAlex):
 
 
 def autocomplete(s):
-    """autocomplete with any type of entity"""
+    """Autocomplete with any type of entity.
+
+    Parameters
+    ----------
+    s : str
+        String to autocomplete.
+
+    Returns
+    -------
+    OpenAlexResponseList
+        List of autocomplete results.
+    """
     return autocompletes()[s]
 
 
