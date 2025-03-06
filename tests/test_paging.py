@@ -18,13 +18,13 @@ def test_cursor():
     # loop till next_cursor is None
     while next_cursor is not None:
         # get the results
-        r, m = query.get(return_meta=True, per_page=200, cursor=next_cursor)
+        r = query.get(per_page=200, cursor=next_cursor)
 
         # results
         results.extend(r)
 
         # set the next cursor
-        next_cursor = m["next_cursor"]
+        next_cursor = r.meta["next_cursor"]
 
     assert len(results) > 200
 
@@ -41,17 +41,17 @@ def test_page():
     # loop till page is None
     while page is not None:
         # get the results
-        r, m = query.get(return_meta=True, per_page=200, page=page)
+        r = query.get(per_page=200, page=page)
 
         # results
         results.extend(r)
-        page = None if len(r) == 0 else m["page"] + 1
+        page = None if len(r) == 0 else r.meta["page"] + 1
 
     assert len(results) > 200
 
 
 def test_paginate_counts():
-    _, m = Authors().search_filter(display_name="einstein").get(return_meta=True)
+    r = Authors().search_filter(display_name="einstein").get()
 
     p_default = Authors().search_filter(display_name="einstein").paginate(per_page=200)
     n_p_default = sum(len(page) for page in p_default)
@@ -70,7 +70,7 @@ def test_paginate_counts():
     )
     n_p_page = sum(len(page) for page in p_page)
 
-    assert m["count"] == n_p_page >= n_p_default == n_p_cursor
+    assert r.meta["count"] == n_p_page >= n_p_default == n_p_cursor
 
 
 def test_paginate_instance():

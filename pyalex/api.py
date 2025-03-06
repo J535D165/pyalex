@@ -1,6 +1,7 @@
 import logging
 import warnings
 from urllib.parse import quote_plus
+from urllib.parse import urlunparse
 
 import requests
 from requests.auth import AuthBase
@@ -169,6 +170,29 @@ class OpenAlexEntity(dict):
     pass
 
 
+class OpenAlexResponseList(list):
+    """A list of OpenAlexEntity objects with metadata.
+
+    Attributes:
+        meta: a dictionary with metadata about the results
+        resource_class: the class to use for each entity in the results
+
+    Arguments:
+        results: a list of OpenAlexEntity objects
+        meta: a dictionary with metadata about the results
+        resource_class: the class to use for each entity in the results
+
+    Returns:
+        a OpenAlexResponseList object
+    """
+
+    def __init__(self, results, meta=None, resource_class=OpenAlexEntity):
+        self.resource_class = resource_class
+        self.meta = meta
+
+        super().__init__([resource_class(ent) for ent in results])
+
+
 class Paginator:
     VALUE_CURSOR_START = "*"
     VALUE_NUMBER_START = 1
@@ -205,22 +229,20 @@ class Paginator:
         else:
             raise ValueError()
 
-        results, meta = self.endpoint_class.get(
-            return_meta=True, per_page=self.per_page, **pagination_params
-        )
+        r = self.endpoint_class.get(per_page=self.per_page, **pagination_params)
 
         if self.method == "cursor":
-            self._next_value = meta["next_cursor"]
+            self._next_value = r.meta["next_cursor"]
 
         if self.method == "page":
-            if len(results) > 0:
-                self._next_value = meta["page"] + 1
+            if len(r) > 0:
+                self._next_value = r.meta["page"] + 1
             else:
                 self._next_value = None
 
-        self.n = self.n + len(results)
+        self.n = self.n + len(r)
 
-        return results
+        return r
 
 
 class OpenAlexAuth(AuthBase):
@@ -255,14 +277,6 @@ class BaseOpenAlex:
     def __init__(self, params=None):
         self.params = params
 
-    def _full_collection_name(self):
-        if self.params is not None and "q" in self.params.keys():
-            return (
-                f"{config.openalex_url}/autocomplete/{self.__class__.__name__.lower()}"
-            )
-        else:
-            return f"{config.openalex_url}/{self.__class__.__name__.lower()}"
-
     def __getattr__(self, key):
         if key == "groupby":
             raise AttributeError(
@@ -282,42 +296,54 @@ class BaseOpenAlex:
                 raise ValueError("OpenAlex does not support more than 100 ids")
 
             return self.filter_or(openalex_id=record_id).get(per_page=len(record_id))
+        elif isinstance(record_id, str):
+            self.params = record_id
+            return self._get_from_url(self.url)
+        else:
+            raise ValueError("record_id should be a string or a list of strings")
 
-        return self._get_from_url(
-            f"{self._full_collection_name()}/{_quote_oa_value(record_id)}",
-            return_meta=False,
-        )
+    def _url_query(self):
+        if isinstance(self.params, list):
+            return self.filter_or(openalex_id=self.params)
+        elif isinstance(self.params, dict):
+            l_params = []
+            for k, v in self.params.items():
+                if v is None:
+                    pass
+                elif isinstance(v, list):
+                    l_params.append(
+                        "{}={}".format(k, ",".join(map(_quote_oa_value, v)))
+                    )
+                elif k in ["filter", "sort"]:
+                    l_params.append(f"{k}={_flatten_kv(v)}")
+                else:
+                    l_params.append(f"{k}={_quote_oa_value(v)}")
+
+            if l_params:
+                return "&".join(l_params)
+
+        else:
+            return ""
 
     @property
     def url(self):
-        if not self.params:
-            return self._full_collection_name()
+        base_path = self.__class__.__name__.lower()
 
-        l_params = []
-        for k, v in self.params.items():
-            if v is None:
-                pass
-            elif isinstance(v, list):
-                l_params.append("{}={}".format(k, ",".join(map(_quote_oa_value, v))))
-            elif k in ["filter", "sort"]:
-                l_params.append(f"{k}={_flatten_kv(v)}")
-            else:
-                l_params.append(f"{k}={_quote_oa_value(v)}")
+        if isinstance(self.params, str):
+            path = f"{base_path}/{_quote_oa_value(self.params)}"
+            query = ""
+        else:
+            path = base_path
+            query = self._url_query()
 
-        if l_params:
-            return "{}?{}".format(self._full_collection_name(), "&".join(l_params))
-
-        return self._full_collection_name()
+        return urlunparse(("https", "api.openalex.org", path, "", query, ""))
 
     def count(self):
-        _, m = self.get(return_meta=True, per_page=1)
+        return self.get(per_page=1).meta["count"]
 
-        return m["count"]
-
-    def _get_from_url(self, url, return_meta=False):
+    def _get_from_url(self, url):
         res = _get_requests_session().get(url, auth=OpenAlexAuth(config))
 
-        # handle query errors
         if res.status_code == 403:
             if (
                 isinstance(res.json()["error"], str)
@@ -328,30 +354,39 @@ class BaseOpenAlex:
         res.raise_for_status()
         res_json = res.json()
 
-        # group-by or results page
         if self.params and "group-by" in self.params:
-            results = res_json["group_by"]
+            return OpenAlexResponseList(
+                res_json["group_by"], res_json["meta"], self.resource_class
+            )
         elif "results" in res_json:
-            results = [self.resource_class(ent) for ent in res_json["results"]]
+            return OpenAlexResponseList(
+                res_json["results"], res_json["meta"], self.resource_class
+            )
         elif "id" in res_json:
-            results = self.resource_class(res_json)
+            return self.resource_class(res_json)
         else:
             raise ValueError("Unknown response format")
-
-        # return result and metadata
-        if return_meta:
-            return results, res_json["meta"]
-        else:
-            return results
 
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
 
-        self._add_params("per-page", per_page)
-        self._add_params("page", page)
-        self._add_params("cursor", cursor)
-        return self._get_from_url(self.url, return_meta=return_meta)
+        if not isinstance(self.params, (str, list)):
+            self._add_params("per-page", per_page)
+            self._add_params("page", page)
+            self._add_params("cursor", cursor)
+
+        resp_list = self._get_from_url(self.url)
+
+        if return_meta:
+            warnings.warn(
+                "return_meta is deprecated, call .meta on the result",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return resp_list, resp_list.meta
+        else:
+            return resp_list
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
         if method == "cursor":
@@ -431,10 +466,32 @@ class BaseOpenAlex:
         self._add_params("select", s)
         return self
 
-    def autocomplete(self, s, **kwargs):
+    def autocomplete(self, s, return_meta=False):
         """autocomplete the string s, for a specific type of entity"""
         self._add_params("q", s)
-        return self.get(**kwargs)
+
+        resp_list = self._get_from_url(
+            urlunparse(
+                (
+                    "https",
+                    "api.openalex.org",
+                    f"autocomplete/{self.__class__.__name__.lower()}",
+                    "",
+                    self._url_query(),
+                    "",
+                )
+            )
+        )
+
+        if return_meta:
+            warnings.warn(
+                "return_meta is deprecated, call .meta on the result",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return resp_list, resp_list.meta
+        else:
+            return resp_list
 
 
 # The API
@@ -455,11 +512,17 @@ class Work(OpenAlexEntity):
         res.raise_for_status()
         results = res.json()
 
-        # return result and metadata
+        resp_list = OpenAlexResponseList(results["ngrams"], results["meta"])
+
         if return_meta:
-            return results["ngrams"], results["meta"]
+            warnings.warn(
+                "return_meta is deprecated, call .meta on the result",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return resp_list, resp_list.meta
         else:
-            return results["ngrams"]
+            return resp_list
 
 
 class Works(BaseOpenAlex):
@@ -549,7 +612,16 @@ class autocompletes(BaseOpenAlex):
 
     def __getitem__(self, key):
         return self._get_from_url(
-            f"{config.openalex_url}/autocomplete?q={key}", return_meta=False
+            urlunparse(
+                (
+                    "https",
+                    "api.openalex.org",
+                    "autocomplete",
+                    "",
+                    f"q={quote_plus(key)}",
+                    "",
+                )
+            )
         )
 
 

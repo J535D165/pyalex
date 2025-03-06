@@ -158,11 +158,11 @@ Works().count()
 For lists of entities, you can return the result as well as the metadata. By default, only the results are returned.
 
 ```python
-results, meta = Topics().get(return_meta=True)
+topics = Topics().get()
 ```
 
 ```python
-print(meta)
+print(topics.meta)
 {'count': 65073, 'db_response_time_ms': 16, 'page': 1, 'per_page': 25}
 ```
 
