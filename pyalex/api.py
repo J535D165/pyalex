@@ -338,6 +338,8 @@ class Paginator:
         self.value = value
         self.per_page = per_page
         self.n_max = n_max
+        # The current number of results retrieved.
+        self.n = 0
 
         self._next_value = value
 
@@ -568,7 +570,7 @@ class BaseOpenAlex:
             Paginator object.
         """
         if method == "cursor":
-            if self.params.get("sample"):
+            if self.params is not None and self.params.get("sample"):
                 raise ValueError("method should be 'page' when using sample")
             value = cursor
         elif method == "page":

@@ -102,3 +102,7 @@ def test_cursor_paging_n_max_none():
 def test_paging_with_sample():
     with pytest.raises(ValueError):
         Authors().sample(1).paginate(method="cursor")
+
+
+def test_paging_next():
+    next(Authors().paginate())
