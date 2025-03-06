@@ -283,33 +283,23 @@ class OpenAlexEntity(dict):
 class OpenAlexResponseList(list):
     """A list of OpenAlexEntity objects with metadata.
 
-    Attributes
-    ----------
-    meta : dict
-        Metadata about the results.
-    resource_class : class
-        Class to use for each entity in the results.
+    Attributes:
+        meta: a dictionary with metadata about the results
+        resource_class: the class to use for each entity in the results
 
-    Parameters
-    ----------
-    results : list
-        List of OpenAlexEntity objects.
-    meta : dict, optional
-        Metadata about the results.
-    resource_class : class, optional
-        Class to use for each entity in the results.
+    Arguments:
+        results: a list of OpenAlexEntity objects
+        meta: a dictionary with metadata about the results
+        resource_class: the class to use for each entity in the results
 
-    Returns
-    -------
-    OpenAlexResponseList
-        List of OpenAlexEntity objects with metadata.
+    Returns:
+        a OpenAlexResponseList object
     """
 
-    def __init__(self, results, meta=None, resource_class=None):
+    def __init__(self, results, meta=None, resource_class=OpenAlexEntity):
         self.resource_class = resource_class
         self.meta = meta
 
-        resource_class = resource_class or OpenAlexEntity
         super().__init__([resource_class(ent) for ent in results])
 
 
@@ -482,6 +472,7 @@ class BaseOpenAlex:
         The URL doens't include the identification, authentication,
         and pagination parameters.
 
+
         Returns
         -------
         str
@@ -535,24 +526,6 @@ class BaseOpenAlex:
             raise ValueError("Unknown response format")
 
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
-        """Get results from the API.
-
-        Parameters
-        ----------
-        return_meta : bool, optional
-            Whether to return metadata.
-        page : int, optional
-            Page number for pagination.
-        per_page : int, optional
-            Number of results per page.
-        cursor : str, optional
-            Cursor for pagination.
-
-        Returns
-        -------
-        OpenAlexResponseList
-            List of results.
-        """
         if per_page is not None and (per_page < 1 or per_page > 200):
             raise ValueError("per_page should be a number between 1 and 200.")
 
@@ -836,7 +809,7 @@ class BaseOpenAlex:
         return self
 
     def autocomplete(self, s, return_meta=False):
-        """Autocomplete the string s for a specific type of entity.
+        """Return the OpenAlex autocomplete results.
 
         Parameters
         ----------
@@ -850,6 +823,7 @@ class BaseOpenAlex:
         OpenAlexResponseList
             List of autocomplete results.
         """
+
         self._add_params("q", s)
 
         resp_list = self._get_from_url(
@@ -874,6 +848,9 @@ class BaseOpenAlex:
             return resp_list, resp_list.meta
         else:
             return resp_list
+
+
+# The API
 
 
 class Work(OpenAlexEntity):
