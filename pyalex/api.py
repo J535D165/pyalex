@@ -338,14 +338,12 @@ class Paginator:
         self.value = value
         self.per_page = per_page
         self.n_max = n_max
-        # The current number of results retrieved.
         self.n = 0
 
         self._next_value = value
+        self._session = _get_requests_session()
 
     def __iter__(self):
-        self.n = 0
-
         return self
 
     def _is_max(self):
@@ -358,13 +356,22 @@ class Paginator:
             raise StopIteration
 
         if self.method == "cursor":
-            pagination_params = {"cursor": self._next_value}
+            self.endpoint_class._add_params("cursor", self._next_value)
         elif self.method == "page":
-            pagination_params = {"page": self._next_value}
+            self.endpoint_class._add_params("page", self._next_value)
         else:
-            raise ValueError()
+            raise ValueError("Method should be 'cursor' or 'page'")
 
-        r = self.endpoint_class.get(per_page=self.per_page, **pagination_params)
+        if self.per_page is not None and (
+            not isinstance(self.per_page, int)
+            or (self.per_page < 1 or self.per_page > 200)
+        ):
+            raise ValueError("per_page should be a integer between 1 and 200")
+
+        if self.per_page is not None:
+            self.endpoint_class._add_params("per-page", self.per_page)
+
+        r = self.endpoint_class._get_from_url(self.endpoint_class.url, self._session)
 
         if self.method == "cursor":
             self._next_value = r.meta["next_cursor"]
@@ -501,8 +508,11 @@ class BaseOpenAlex:
         """
         return self.get(per_page=1).meta["count"]
 
-    def _get_from_url(self, url):
-        res = _get_requests_session().get(url, auth=OpenAlexAuth(config))
+    def _get_from_url(self, url, session=None):
+        if session is None:
+            session = _get_requests_session()
+
+        res = session.get(url, auth=OpenAlexAuth(config))
 
         if res.status_code == 403:
             if (
@@ -528,8 +538,10 @@ class BaseOpenAlex:
             raise ValueError("Unknown response format")
 
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
-        if per_page is not None and (per_page < 1 or per_page > 200):
-            raise ValueError("per_page should be a number between 1 and 200.")
+        if per_page is not None and (
+            not isinstance(per_page, int) or (per_page < 1 or per_page > 200)
+        ):
+            raise ValueError("per_page should be an integer between 1 and 200")
 
         if not isinstance(self.params, (str, list)):
             self._add_params("per-page", per_page)
@@ -570,7 +582,7 @@ class BaseOpenAlex:
             Paginator object.
         """
         if method == "cursor":
-            if self.params is not None and self.params.get("sample"):
+            if isinstance(self.params, dict) and self.params.get("sample"):
                 raise ValueError("method should be 'page' when using sample")
             value = cursor
         elif method == "page":
