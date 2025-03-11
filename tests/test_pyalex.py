@@ -76,6 +76,20 @@ def test_per_page():
     assert len(Works().filter(publication_year=2020).get(per_page=200)) == 200
 
 
+def test_per_page_none():
+    assert len(Works().filter(publication_year=2020).get(per_page=None)) == 25
+
+
+def test_per_page_1000():
+    with pytest.raises(ValueError):
+        Works().filter(publication_year=2020).get(per_page=1000)
+
+
+def test_per_page_str():
+    with pytest.raises(ValueError):
+        Works().filter(publication_year=2020).get(per_page="100")
+
+
 def test_W4238809453_works():
     assert isinstance(Works()["W4238809453"], Work)
     assert Works()["W4238809453"]["doi"] == "https://doi.org/10.1001/jama.264.8.944b"

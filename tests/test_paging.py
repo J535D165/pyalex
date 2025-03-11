@@ -7,6 +7,10 @@ from pyalex.api import Paginator
 pyalex.config.max_retries = 10
 
 
+def test_cursor_no_filter():
+    assert len(list(pyalex.Works().paginate(per_page=200, n_max=1000))) == 5
+
+
 def test_cursor():
     query = Authors().search_filter(display_name="einstein")
 
@@ -71,6 +75,28 @@ def test_paginate_counts():
     n_p_page = sum(len(page) for page in p_page)
 
     assert r.meta["count"] == n_p_page >= n_p_default == n_p_cursor
+
+
+def test_paginate_per_page():
+    assert all(len(page) <= 10 for page in Authors().paginate(per_page=10, n_max=50))
+
+
+def test_paginate_per_page_200():
+    assert all(len(page) == 200 for page in Authors().paginate(per_page=200, n_max=400))
+
+
+def test_paginate_per_page_none():
+    assert all(len(page) == 25 for page in Authors().paginate(n_max=500))
+
+
+def test_paginate_per_page_1000():
+    with pytest.raises(ValueError):
+        assert next(Authors().paginate(per_page=1000))
+
+
+def test_paginate_per_page_str():
+    with pytest.raises(ValueError):
+        assert next(Authors().paginate(per_page="100"))
 
 
 def test_paginate_instance():
