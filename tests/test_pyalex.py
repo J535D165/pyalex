@@ -205,7 +205,7 @@ def test_referenced_works():
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
 
-    r = Works().filter(openalex_id="|".join(w["referenced_works"])).get()
+    r = Works().filter_or(openalex_id=w["referenced_works"]).get()
 
     assert r.meta["count"] <= len(w["referenced_works"])
 
