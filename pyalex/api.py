@@ -1,3 +1,4 @@
+import email
 import logging
 import warnings
 from urllib.parse import quote_plus
@@ -6,6 +7,7 @@ from urllib.parse import urlunparse
 import requests
 from requests.auth import AuthBase
 from urllib3.util import Retry
+from tqdm import tqdm
 
 try:
     from pyalex._version import __version__
@@ -32,6 +34,8 @@ class AlexConfig(dict):
         Backoff factor for retries.
     retry_http_codes : list
         List of HTTP status codes to retry on.
+    disable_tqdm_loading_bar : bool
+        Disable tqdm progress bar if true. Defaults to False.
     """
 
     def __getattr__(self, key):
@@ -49,6 +53,7 @@ config = AlexConfig(
     max_retries=0,
     retry_backoff_factor=0.1,
     retry_http_codes=[429, 500, 503],
+    disable_tqdm_loading_bar=False,
 )
 
 
@@ -862,6 +867,43 @@ class BaseOpenAlex:
             return resp_list, resp_list.meta
         else:
             return resp_list
+
+    def get_from_ids(self, l, ordered = True):
+        """Return the OpenAlex entities list from the requested ids.
+
+        Parameters
+        ----------
+        l : list[str]
+            Entities to get.
+        ordered : bool, optional
+            Whether keep the order from the input list l in the results. Defaults to True.
+
+        Returns
+        -------
+        list[OpenAlexEntity | None]
+            List of OpenAlex entities. If entities are not found, None is returned.
+        """
+
+        res = [] * len(l)
+        i = 0
+        with tqdm(total=len(l), disable=config.disable_tqdm_loading_bar) as pbar:
+            # reduce 100 if too big for OpenAlex (limited by the size of the http request length)
+            while i + 100 < len(l):
+                res[i:i + 100] = self.filter(ids={'openalex': '|'.join(l[i:i + 100])}).get(per_page=100)
+                i += 100
+                pbar.update(100)
+            res[i:] = self.filter(ids={'openalex': '|'.join(l[i:])}).get(per_page=100)
+            pbar.update(len(l) % 100)
+
+        if ordered:
+            # sort the res list with the order provided in the list ids
+            # create a dictionary with each id as key and the index in the res list as value
+            res_ids_index = {entity['id'][21:]: i for i, entity in enumerate(res) if entity is not None}
+            # sort based on the index
+            res = [res[res_ids_index[entity_id]] if res_ids_index.get(entity_id) is not None else None
+                   for entity_id in l]
+
+        return res
 
 
 # The API
