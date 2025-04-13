@@ -1,4 +1,3 @@
-import email
 import logging
 import warnings
 from urllib.parse import quote_plus
@@ -6,8 +5,8 @@ from urllib.parse import urlunparse
 
 import requests
 from requests.auth import AuthBase
-from urllib3.util import Retry
 from tqdm import tqdm
+from urllib3.util import Retry
 
 try:
     from pyalex._version import __version__
@@ -868,7 +867,7 @@ class BaseOpenAlex:
         else:
             return resp_list
 
-    def get_from_ids(self, l, ordered = True):
+    def get_from_ids(self, l, ordered=True):
         """Return the OpenAlex entities list from the requested ids.
 
         Parameters
@@ -889,19 +888,29 @@ class BaseOpenAlex:
         with tqdm(total=len(l), disable=config.disable_tqdm_loading_bar) as pbar:
             # reduce 100 if too big for OpenAlex (limited by the size of the http request length)
             while i + 100 < len(l):
-                res[i:i + 100] = self.filter(ids={'openalex': '|'.join(l[i:i + 100])}).get(per_page=100)
+                res[i : i + 100] = self.filter(
+                    ids={"openalex": "|".join(l[i : i + 100])}
+                ).get(per_page=100)
                 i += 100
                 pbar.update(100)
-            res[i:] = self.filter(ids={'openalex': '|'.join(l[i:])}).get(per_page=100)
+            res[i:] = self.filter(ids={"openalex": "|".join(l[i:])}).get(per_page=100)
             pbar.update(len(l) % 100)
 
         if ordered:
             # sort the res list with the order provided in the list ids
             # create a dictionary with each id as key and the index in the res list as value
-            res_ids_index = {entity['id'][21:]: i for i, entity in enumerate(res) if entity is not None}
+            res_ids_index = {
+                entity["id"][21:]: i
+                for i, entity in enumerate(res)
+                if entity is not None
+            }
             # sort based on the index
-            res = [res[res_ids_index[entity_id]] if res_ids_index.get(entity_id) is not None else None
-                   for entity_id in l]
+            res = [
+                res[res_ids_index[entity_id]]
+                if res_ids_index.get(entity_id) is not None
+                else None
+                for entity_id in l
+            ]
 
         return res
 
