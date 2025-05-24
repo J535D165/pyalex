@@ -373,6 +373,25 @@ with open(Path("works.json")) as f:
 
 A list of awesome use cases of the OpenAlex dataset.
 
+### Search author by name and affiliation
+
+This requires searching for the affiliation first, retrieving the affiliation ID, and then searching for the author while filtering for the affiliation:
+
+```python
+from pyalex import Authors, Institutions
+import logging
+
+# Search for the institution
+insts = Institutions().search("MIT").get()
+logging.info(f"{len(insts)} search results found for the institution")
+inst_id = insts[0]["id"].replace("https://openalex.org/", "")
+
+# Search for the author within the institution
+auths = Authors().search("Daron Acemoglu").filter(affiliations={"institution":{"id": inst_id}}).get()
+logging.info(f"{len(auths)} search results found for the author")
+auth = auths[0]
+```
+
 ### Cited publications (works referenced by this paper, outgoing citations)
 
 ```python
