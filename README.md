@@ -120,6 +120,8 @@ Publishers().random()
 Funders().random()
 ```
 
+Check also [sample](#sample), which does support filters.
+
 #### Get abstract
 
 Only for Works. Request a work from the OpenAlex database:
@@ -239,6 +241,14 @@ OpenAlex reference: [Sample entity lists](https://docs.openalex.org/how-to-use-t
 ```python
 Works().sample(100, seed=535).get()
 ```
+
+Get 10 random German-based institutions:
+
+```python
+Institutions().filter(country_code="DE").sample(10).get()
+```
+
+Check also [random](#get-random), which does not support filters.
 
 #### Logical expressions
 
