@@ -423,9 +423,21 @@ Works().filter(cites="W2741809807").get()
 ### Get works of a single author
 
 ```python
-from pyalex import Works
+import pyalex
 
-Works().filter(author={"id": "A2887243803"}).get()
+def download_author_works(author_id, per_page=100, max_pages=100):
+    """Download works for a given author ID from OpenAlex."""
+    #logging.info(f"Downloading works for author ID: {author_id}")
+    res = list()
+    for page in range(1, max_pages):
+        batch = pyalex.Works().filter(author={"id":author_id}).get(page=page, per_page=per_page)
+        res += batch
+        if len(batch) < per_page:
+            break
+    return res
+
+res = download_author_works("A5000387389")
+print(len(res)) # 491
 ```
 
 ### Dataset publications in the global south
