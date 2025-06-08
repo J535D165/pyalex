@@ -36,7 +36,8 @@ class AlexConfig(dict):
     disable_tqdm_loading_bar : bool
         Disable tqdm progress bar if true. Defaults to False.
     ids_batch_size : int
-        Batch size for retrieving multiple entities by ID. An integer from 1 to 100 (OpenAlex limit).
+        Batch size for retrieving multiple entities by ID.
+        An integer from 1 to 100 (OpenAlex limit).
     """
 
     def __getattr__(self, key):
@@ -878,7 +879,8 @@ class BaseOpenAlex:
         l : list[str]
             Entities to get.
         ordered : bool, optional
-            Whether keep the order from the input list l in the results. Defaults to True.
+            Whether keep the order from the input list l in the results.
+            Defaults to True.
 
         Returns
         -------
