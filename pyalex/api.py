@@ -889,12 +889,20 @@ class BaseOpenAlex:
         res = [None] * len(l)
         with tqdm(total=len(l), disable=config.disable_tqdm_loading_bar) as pbar:
             for i in range(0, len(l), config.ids_batch_size):
-                n_doc = config.ids_batch_size if i + config.ids_batch_size < len(l) else len(l) % config.ids_batch_size
-                res[i:i + n_doc] = self.__class__().filter_or(openalex_id=l[i:i + n_doc]).get(per_page=n_doc)
+                n_doc = (
+                    config.ids_batch_size
+                    if i + config.ids_batch_size < len(l)
+                    else len(l) % config.ids_batch_size
+                )
+                res[i : i + n_doc] = (
+                    self.__class__()
+                    .filter_or(openalex_id=l[i : i + n_doc])
+                    .get(per_page=n_doc)
+                )
                 pbar.update(n_doc)
 
         if ordered:
-            map_ids = {doc["id"].split('/')[-1]: doc for doc in res}
+            map_ids = {doc["id"].split("/")[-1]: doc for doc in res}
             res = [map_ids.get(id_.upper(), None) for id_ in l]
 
         return res
