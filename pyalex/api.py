@@ -1,4 +1,3 @@
-import email
 import logging
 import warnings
 from urllib.parse import quote_plus
@@ -6,8 +5,8 @@ from urllib.parse import urlunparse
 
 import requests
 from requests.auth import AuthBase
-from urllib3.util import Retry
 from tqdm import tqdm
+from urllib3.util import Retry
 
 try:
     from pyalex._version import __version__
