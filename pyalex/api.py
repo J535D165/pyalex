@@ -36,6 +36,8 @@ class AlexConfig(dict):
         List of HTTP status codes to retry on.
     disable_tqdm_loading_bar : bool
         Disable tqdm progress bar if true. Defaults to False.
+    ids_batch_size : int
+        Batch size for retrieving multiple entities by ID. An integer from 1 to 100 (OpenAlex limit).
     """
 
     def __getattr__(self, key):
@@ -54,6 +56,7 @@ config = AlexConfig(
     retry_backoff_factor=0.1,
     retry_http_codes=[429, 500, 503],
     disable_tqdm_loading_bar=False,
+    ids_batch_size=100,
 )
 
 
@@ -868,7 +871,7 @@ class BaseOpenAlex:
         else:
             return resp_list
 
-    def get_from_ids(self, l, ordered = True):
+    def get_from_ids(self, l: list[str], ordered=True) -> list[OpenAlexEntity | None]:
         """Return the OpenAlex entities list from the requested ids.
 
         Parameters
@@ -884,24 +887,16 @@ class BaseOpenAlex:
             List of OpenAlex entities. If entities are not found, None is returned.
         """
 
-        res = [] * len(l)
-        i = 0
+        res = [None] * len(l)
         with tqdm(total=len(l), disable=config.disable_tqdm_loading_bar) as pbar:
-            # reduce 100 if too big for OpenAlex (limited by the size of the http request length)
-            while i + 100 < len(l):
-                res[i:i + 100] = self.filter(ids={'openalex': '|'.join(l[i:i + 100])}).get(per_page=100)
-                i += 100
-                pbar.update(100)
-            res[i:] = self.filter(ids={'openalex': '|'.join(l[i:])}).get(per_page=100)
-            pbar.update(len(l) % 100)
+            for i in range(0, len(l), config.ids_batch_size):
+                n_doc = config.ids_batch_size if i + config.ids_batch_size < len(l) else len(l) % config.ids_batch_size
+                res[i:i + n_doc] = self.__class__().filter_or(openalex_id=l[i:i + n_doc]).get(per_page=n_doc)
+                pbar.update(n_doc)
 
         if ordered:
-            # sort the res list with the order provided in the list ids
-            # create a dictionary with each id as key and the index in the res list as value
-            res_ids_index = {entity['id'][21:]: i for i, entity in enumerate(res) if entity is not None}
-            # sort based on the index
-            res = [res[res_ids_index[entity_id]] if res_ids_index.get(entity_id) is not None else None
-                   for entity_id in l]
+            map_ids = {doc["id"].split('/')[-1]: doc for doc in res}
+            res = [map_ids.get(id_.upper(), None) for id_ in l]
 
         return res
 
