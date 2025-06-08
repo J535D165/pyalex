@@ -871,12 +871,12 @@ class BaseOpenAlex:
         else:
             return resp_list
 
-    def get_from_ids(self, l: list, ordered=True) -> list:
+    def get_from_ids(self, ids: list, ordered=True) -> list:
         """Return the OpenAlex entities list from the requested ids.
 
         Parameters
         ----------
-        l : list[str]
+        ids : list[str]
             Entities to get.
         ordered : bool, optional
             Whether keep the order from the input list l in the results.
@@ -888,24 +888,24 @@ class BaseOpenAlex:
             List of OpenAlex entities. If entities are not found, None is returned.
         """
 
-        res = [None] * len(l)
-        with tqdm(total=len(l), disable=config.disable_tqdm_loading_bar) as pbar:
-            for i in range(0, len(l), config.ids_batch_size):
+        res = [None] * len(ids)
+        with tqdm(total=len(ids), disable=config.disable_tqdm_loading_bar) as pbar:
+            for i in range(0, len(ids), config.ids_batch_size):
                 n_doc = (
                     config.ids_batch_size
-                    if i + config.ids_batch_size < len(l)
-                    else len(l) % config.ids_batch_size
+                    if i + config.ids_batch_size < len(ids)
+                    else len(ids) % config.ids_batch_size
                 )
                 res[i : i + n_doc] = (
                     self.__class__()
-                    .filter_or(openalex_id=l[i : i + n_doc])
+                    .filter_or(openalex_id=ids[i : i + n_doc])
                     .get(per_page=n_doc)
                 )
                 pbar.update(n_doc)
 
         if ordered:
             map_ids = {doc["id"].split("/")[-1]: doc for doc in res}
-            res = [map_ids.get(id_.upper(), None) for id_ in l]
+            res = [map_ids.get(id_.upper(), None) for id_ in ids]
 
         return res
 
