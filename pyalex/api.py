@@ -870,7 +870,7 @@ class BaseOpenAlex:
         else:
             return resp_list
 
-    def get_from_ids(self, l: list[str], ordered=True) -> list[OpenAlexEntity | None]:
+    def get_from_ids(self, l: list, ordered=True) -> list:
         """Return the OpenAlex entities list from the requested ids.
 
         Parameters
