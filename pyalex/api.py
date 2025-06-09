@@ -875,7 +875,9 @@ class BaseOpenAlex:
         else:
             return resp_list
 
-    def get_from_ids(self, ids: list, id_type: str="openalex_id", ordered=False) -> list:
+    def get_from_ids(
+        self, ids: list, id_type: str = "openalex_id", ordered=False
+    ) -> list:
         """Return the OpenAlex entities list from the requested ids.
 
         Parameters
@@ -895,7 +897,11 @@ class BaseOpenAlex:
             List of OpenAlex entities. If ordered == True, None is returned for not found entities.
         """
 
-        ids_batch_size = config.openalex_ids_batch_size if id_type == "openalex_id" else config.external_ids_batch_size
+        ids_batch_size = (
+            config.openalex_ids_batch_size
+            if id_type == "openalex_id"
+            else config.external_ids_batch_size
+        )
 
         res = [None] * len(ids)
         with tqdm(total=len(ids), disable=config.disable_tqdm_loading_bar) as pbar:
@@ -914,8 +920,10 @@ class BaseOpenAlex:
 
         if ordered:
             if id_type == "issn":
-                raise NotImplementedError("Ordering is not supported for ISSN ids as a single source can have multiple "
-                                          "ISSN.")
+                raise NotImplementedError(
+                    "Ordering is not supported for ISSN ids as a single source can have multiple "
+                    "ISSN."
+                )
             id_field_name = "id" if id_type == "openalex_id" else id_type
             map_ids = {doc[id_field_name].split("/")[-1].upper(): doc for doc in res}
             res = [map_ids.get(id_.split("/")[-1].upper(), None) for id_ in ids]
