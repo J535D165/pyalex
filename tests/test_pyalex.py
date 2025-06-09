@@ -430,7 +430,8 @@ def test_urlencoding_list():
 @pytest.mark.parametrize("openalex_ids_batch_size", [1, 2, 3, 100])
 def test_get_from_ids_openalex_id(openalex_ids_batch_size):
     """
-    Test get_from_ids() for openalex_id and with various values of openalex_ids_batch_size
+    Test get_from_ids() for openalex_id and with various values of
+    openalex_ids_batch_size
     """
     original_openalex_ids_batch_size = pyalex.config.openalex_ids_batch_size
     pyalex.config.openalex_ids_batch_size = openalex_ids_batch_size

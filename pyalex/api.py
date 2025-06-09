@@ -39,7 +39,8 @@ class AlexConfig(dict):
         Batch size for retrieving multiple entities by their OpenAlex ID.
         An integer from 1 to 100 (OpenAlex limit).
     external_ids_batch_size : int
-        Batch size for retrieving multiple entities by ID external to OpenAlex (DOI, ISSN, ORCID, ROR, ...).
+        Batch size for retrieving multiple entities by ID external to OpenAlex (DOI,
+        ISSN, ORCID, ROR, ...).
         An integer from 1 to 50 (OpenAlex limit).
     """
 
@@ -885,8 +886,8 @@ class BaseOpenAlex:
         ids : list[str]
             IDs of the entities to get.
         id_type : str
-            ID type for the entities to retrieve. One of "openalex_id", "doi" (Works), "issn" (Sources), "orcid"
-            (Authors) or "ror" (Institutions).
+            ID type for the entities to retrieve. One of "openalex_id", "doi" (Works),
+            "issn" (Sources), "orcid" (Authors) or "ror" (Institutions).
         ordered : bool, optional
             Whether keep the order from the input list ids in the results.
             Defaults to False.
@@ -894,7 +895,8 @@ class BaseOpenAlex:
         Returns
         -------
         list[OpenAlexEntity | None]
-            List of OpenAlex entities. If ordered == True, None is returned for not found entities.
+            List of OpenAlex entities. If ordered == True, None is returned for not
+            found entities.
         """
 
         ids_batch_size = (
@@ -921,8 +923,8 @@ class BaseOpenAlex:
         if ordered:
             if id_type == "issn":
                 raise NotImplementedError(
-                    "Ordering is not supported for ISSN ids as a single source can have multiple "
-                    "ISSN."
+                    "Ordering is not supported for ISSN ids as a single source can "
+                    "have multiple ISSN."
                 )
             id_field_name = "id" if id_type == "openalex_id" else id_type
             map_ids = {doc[id_field_name].split("/")[-1].upper(): doc for doc in res}
