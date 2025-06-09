@@ -427,16 +427,18 @@ def test_urlencoding_list():
     )
 
 
-@pytest.mark.parametrize("ids_batch_size", [1, 2, 3, 100])
-def test_get_from_ids(ids_batch_size):
-    original_ids_batch_size = pyalex.config.ids_batch_size
-    pyalex.config.max_retries = ids_batch_size
+@pytest.mark.parametrize("openalex_ids_batch_size", [1, 2, 3, 100])
+def test_get_from_ids_openalex_id(openalex_ids_batch_size):
+    """
+    Test get_from_ids() for openalex_id and with various values of openalex_ids_batch_size
+    """
+    original_openalex_ids_batch_size = pyalex.config.openalex_ids_batch_size
+    pyalex.config.openalex_ids_batch_size = openalex_ids_batch_size
     try:
-        # test with a list of 3 articles
         entities_ids = [
             "W4409154704",
             "W1999167944",
-            "W2096885696",
+            "https://openalex.org/W2096885696",
         ]
         entities_names = [
             "Challenges and opportunities when assessing exposure of financial "
@@ -444,8 +446,51 @@ def test_get_from_ids(ids_batch_size):
             "Planetary boundaries: Guiding human development on a changing planet",
             "A safe operating space for humanity",
         ]
-        res = pyalex.Works().get_from_ids(entities_ids)
+        res = pyalex.Works().get_from_ids(entities_ids, ordered=True)
         for i in range(len(entities_names)):
             assert entities_names[i] == res[i]["display_name"]
     finally:
-        pyalex.config.ids_batch_size = original_ids_batch_size
+        pyalex.config.openalex_ids_batch_size = original_openalex_ids_batch_size
+
+
+def test_get_from_ids_doi():
+    entities_ids = [
+        "https://doi.org/10.1016/j.cosust.2025.101526",
+        "10.1126/science.1259855",
+        "https://doi.org/10.1038/461472a",
+    ]
+    entities_names = [
+        "Challenges and opportunities when assessing exposure of financial "
+        "investments to ecosystem regime shifts",
+        "Planetary boundaries: Guiding human development on a changing planet",
+        "A safe operating space for humanity",
+    ]
+    res = pyalex.Works().get_from_ids(entities_ids, id_type="doi", ordered=True)
+    for i in range(len(entities_names)):
+        assert entities_names[i] == res[i]["display_name"]
+
+
+def test_get_from_ids_ror():
+    entities_ids = [
+        "https://ror.org/03xjwb503",
+        "0145rpw38",
+    ]
+    entities_names = [
+        "Université Paris-Saclay",
+        "Stockholm Resilience Centre",
+    ]
+    res = pyalex.Institutions().get_from_ids(entities_ids, id_type="ror", ordered=True)
+    for i in range(len(entities_names)):
+        assert entities_names[i] == res[i]["display_name"]
+
+
+def test_get_from_ids_issn():
+    entities_ids = [
+        "1877-3435",
+    ]
+    entities_names = [
+        "Current Opinion in Environmental Sustainability",
+    ]
+    res = pyalex.Sources().get_from_ids(entities_ids, id_type="issn")
+    for i in range(len(entities_names)):
+        assert entities_names[i] == res[i]["display_name"]

@@ -35,9 +35,12 @@ class AlexConfig(dict):
         List of HTTP status codes to retry on.
     disable_tqdm_loading_bar : bool
         Disable tqdm progress bar if true. Defaults to False.
-    ids_batch_size : int
-        Batch size for retrieving multiple entities by ID.
+    openalex_ids_batch_size : int
+        Batch size for retrieving multiple entities by their OpenAlex ID.
         An integer from 1 to 100 (OpenAlex limit).
+    external_ids_batch_size : int
+        Batch size for retrieving multiple entities by ID external to OpenAlex (DOI, ISSN, ORCID, ROR, ...).
+        An integer from 1 to 50 (OpenAlex limit).
     """
 
     def __getattr__(self, key):
@@ -56,7 +59,8 @@ config = AlexConfig(
     retry_backoff_factor=0.1,
     retry_http_codes=[429, 500, 503],
     disable_tqdm_loading_bar=False,
-    ids_batch_size=100,
+    openalex_ids_batch_size=100,
+    external_ids_batch_size=50,
 )
 
 
@@ -871,41 +875,50 @@ class BaseOpenAlex:
         else:
             return resp_list
 
-    def get_from_ids(self, ids: list, ordered=True) -> list:
+    def get_from_ids(self, ids: list, id_type: str="openalex_id", ordered=False) -> list:
         """Return the OpenAlex entities list from the requested ids.
 
         Parameters
         ----------
         ids : list[str]
-            Entities to get.
+            IDs of the entities to get.
+        id_type : str
+            ID type for the entities to retrieve. One of "openalex_id", "doi" (Works), "issn" (Sources), "orcid"
+            (Authors) or "ror" (Institutions).
         ordered : bool, optional
-            Whether keep the order from the input list l in the results.
-            Defaults to True.
+            Whether keep the order from the input list ids in the results.
+            Defaults to False.
 
         Returns
         -------
         list[OpenAlexEntity | None]
-            List of OpenAlex entities. If entities are not found, None is returned.
+            List of OpenAlex entities. If ordered == True, None is returned for not found entities.
         """
+
+        ids_batch_size = config.openalex_ids_batch_size if id_type == "openalex_id" else config.external_ids_batch_size
 
         res = [None] * len(ids)
         with tqdm(total=len(ids), disable=config.disable_tqdm_loading_bar) as pbar:
-            for i in range(0, len(ids), config.ids_batch_size):
+            for i in range(0, len(ids), ids_batch_size):
                 n_doc = (
-                    config.ids_batch_size
-                    if i + config.ids_batch_size < len(ids)
-                    else len(ids) % config.ids_batch_size
+                    ids_batch_size
+                    if i + ids_batch_size <= len(ids)
+                    else len(ids) % ids_batch_size
                 )
                 res[i : i + n_doc] = (
                     self.__class__()
-                    .filter_or(openalex_id=ids[i : i + n_doc])
+                    .filter_or(**{id_type: ids[i : i + n_doc]})
                     .get(per_page=n_doc)
                 )
                 pbar.update(n_doc)
 
         if ordered:
-            map_ids = {doc["id"].split("/")[-1]: doc for doc in res}
-            res = [map_ids.get(id_.upper(), None) for id_ in ids]
+            if id_type == "issn":
+                raise NotImplementedError("Ordering is not supported for ISSN ids as a single source can have multiple "
+                                          "ISSN.")
+            id_field_name = "id" if id_type == "openalex_id" else id_type
+            map_ids = {doc[id_field_name].split("/")[-1].upper(): doc for doc in res}
+            res = [map_ids.get(id_.split("/")[-1].upper(), None) for id_ in ids]
 
         return res
 
