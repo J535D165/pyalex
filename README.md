@@ -353,6 +353,44 @@ Works()["W2023271753"].ngrams()
 ```
 
 
+### Get lists of entities based on ids
+
+You can optimize your API requests when retrieving multiple entities from OpenAlex based on their IDs.
+The entities can be requested by 100 for OpenAlex IDs and by 50 for the other IDs (DOI, ISSN, ORCID, ROR).
+
+The following example demonstrates how to get Works based on their OpenAlex IDs:
+
+```python
+from pyalex import Works
+
+works_ids = ["W4409154704", "W1999167944", "https://openalex.org/W2096885696"]
+
+works = Works().get_from_ids(works_ids, ordered=True)
+```
+
+You can optionally order the results; as by default, the OpenAlex API doesn't align the results on the id list.
+If you order the results, None values will be set in the list when entities are not found, otherwise you will only get the entities found in OpenAlex.
+
+You can specify the IDs either with the full URL (e.g. `https://openalex.org/W4409154704`) or ID string (e.g. `W4409154704`)
+
+`get_from_ids()` can retrieve entities from different types of ids. The supported `id_types` values are:
+  - `openalex_id` (default)
+  - `doi` (Works only)
+  - `issn` (Sources only)
+  - `orcid` (Authors only)
+  - `ror` (Institutions only).
+
+The example bellow shows how to get Instituions based on their ROR ID:
+
+```python
+from pyalex import Institutions
+
+institutions_ids = ["https://ror.org/03xjwb503", "0145rpw38",]
+
+institutions = Institutions().get_from_ids(institutions_ids, id_type="ror", ordered=True)
+```
+
+
 ### Serialize
 
 All results from PyAlex can be serialized. For example, save the results to a JSON file:
@@ -423,6 +461,20 @@ Works() \
   .sort(cited_by_count="desc") \
   .get()
 
+```
+
+### Retrieve a list of articles from their DOIs
+
+```python
+from pyalex import Works
+
+works_ids = [
+    "https://doi.org/10.1016/j.cosust.2025.101526",
+    "10.1126/science.1259855",
+    "https://doi.org/10.1038/461472a",
+]
+
+works = Works().get_from_ids(works_ids, id_type="doi", ordered=True)
 ```
 
 ## Experimental
