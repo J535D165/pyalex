@@ -439,8 +439,8 @@ def test_get_from_ids(ids_batch_size):
             "W2096885696",
         ]
         entities_names = [
-            "Challenges and opportunities when assessing exposure of financial investments "
-            "to ecosystem regime shifts",
+            "Challenges and opportunities when assessing exposure of financial "
+            "investments to ecosystem regime shifts",
             "Planetary boundaries: Guiding human development on a changing planet",
             "A safe operating space for humanity",
         ]
