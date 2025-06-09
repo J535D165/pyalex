@@ -427,19 +427,25 @@ def test_urlencoding_list():
     )
 
 
-def test_get_from_ids():
-    # test with a list of 3 articles
-    entities_ids = [
-        "W4409154704",
-        "W1999167944",
-        "W2096885696",
-    ]
-    entities_names = [
-        "Challenges and opportunities when assessing exposure of financial investments "
-        "to ecosystem regime shifts",
-        "Planetary boundaries: Guiding human development on a changing planet",
-        "A safe operating space for humanity",
-    ]
-    res = pyalex.Works().get_from_ids(entities_ids)
-    for i in range(len(entities_names)):
-        assert entities_names[i] == res[i]["display_name"]
+@pytest.mark.parametrize("ids_batch_size", [1, 2, 3, 100])
+def test_get_from_ids(ids_batch_size):
+    original_ids_batch_size = pyalex.config.ids_batch_size
+    pyalex.config.max_retries = ids_batch_size
+    try:
+        # test with a list of 3 articles
+        entities_ids = [
+            "W4409154704",
+            "W1999167944",
+            "W2096885696",
+        ]
+        entities_names = [
+            "Challenges and opportunities when assessing exposure of financial investments "
+            "to ecosystem regime shifts",
+            "Planetary boundaries: Guiding human development on a changing planet",
+            "A safe operating space for humanity",
+        ]
+        res = pyalex.Works().get_from_ids(entities_ids)
+        for i in range(len(entities_names)):
+            assert entities_names[i] == res[i]["display_name"]
+    finally:
+        pyalex.config.ids_batch_size = original_ids_batch_size
