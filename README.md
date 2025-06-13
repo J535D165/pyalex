@@ -466,6 +466,23 @@ import pyalex
 pyalex.config.api_key = "<MY_KEY>"
 ```
 
+To check out whether your API key is indeed working, you can use the following code:
+
+```python
+import requests
+pyalex.config.retry_http_codes = None
+try:
+    pyalex.Works().filter(from_updated_date="2023-01-12").get()
+except requests.exceptions.HTTPError as e:
+    if e.response.status_code == 403:
+        logging.info("API key is NOT working 🔴")
+    else:
+        logging.error(f"Unexpected HTTP error: {e}")
+        raise
+else:
+    logging.info("API key is working 👍")
+```
+
 ## Alternatives
 
 R users can use the excellent [OpenAlexR](https://github.com/ropensci/openalexR) library.
