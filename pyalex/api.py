@@ -402,9 +402,6 @@ class OpenAlexAuth(AuthBase):
         self.config = config
 
     def __call__(self, r):
-        if self.config.api_key:
-            r.headers["Authorization"] = f"Bearer {self.config.api_key}"
-
         if self.config.email:
             r.headers["From"] = self.config.email
 
@@ -512,6 +509,9 @@ class BaseOpenAlex:
         if session is None:
             session = _get_requests_session()
 
+        logging.getLogger("pyalex").debug(
+            f"Requesting URL: {url}"
+        )
         res = session.get(url, auth=OpenAlexAuth(config))
 
         if res.status_code == 403:
@@ -547,6 +547,12 @@ class BaseOpenAlex:
             self._add_params("per-page", per_page)
             self._add_params("page", page)
             self._add_params("cursor", cursor)
+
+        if config.api_key:
+            logging.getLogger("pyalex").debug(
+                "Using API key for authentication"
+            )
+            self._add_params("api_key", config.api_key)
 
         resp_list = self._get_from_url(self.url)
 
@@ -626,7 +632,7 @@ class BaseOpenAlex:
         else:
             self.params[argument] = new_params
 
-        logging.debug("Params updated:", self.params)
+        logging.getLogger("pyalex").debug("Params updated: "+str(self.params))
 
     def filter(self, **kwargs):
         """Add filter parameters to the API request.
