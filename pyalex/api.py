@@ -12,6 +12,7 @@ try:
 except ImportError:
     __version__ = "0.0.0"
 
+logger = logging.getLogger("pyalex")
 
 class AlexConfig(dict):
     """Configuration class for OpenAlex API.
@@ -512,6 +513,8 @@ class BaseOpenAlex:
         if session is None:
             session = _get_requests_session()
 
+        logger.debug(f"Requesting URL: {url}")
+
         res = session.get(url, auth=OpenAlexAuth(config))
 
         if res.status_code == 403:
@@ -626,7 +629,7 @@ class BaseOpenAlex:
         else:
             self.params[argument] = new_params
 
-        logging.debug("Params updated:", self.params)
+        logger.debug(f"Params updated: {self.params}")
 
     def filter(self, **kwargs):
         """Add filter parameters to the API request.
