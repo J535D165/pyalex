@@ -1,10 +1,11 @@
+import datetime
 import logging
 import warnings
+from dataclasses import dataclass
+from dataclasses import field
 from urllib.parse import quote_plus
 from urllib.parse import urlunparse
 
-import datetime
-from dataclasses import dataclass, field
 import requests
 from requests.auth import AuthBase
 from urllib3.util import Retry
@@ -14,12 +15,13 @@ try:
 except ImportError:
     __version__ = "0.0.0"
 
+
 def _check_api_key():
     raise NotImplementedError()
 
 
 @dataclass
-class AlexConfig():
+class AlexConfig:
     """Configuration class for OpenAlex API.
 
     Attributes
@@ -40,20 +42,18 @@ class AlexConfig():
         List of HTTP status codes to retry on.
     """
 
-    email: str|None = None
+    email: str | None = None
     user_agent: str = f"pyalex/{__version__}"
     openalex_url: str = "https://api.openalex.org"
     max_retries: int = 0
     retry_backoff_factor: float = 0.1
     retry_http_codes: list[int] = field(default_factory=lambda: [429, 500, 503])
-    api_key: str|None = None
+    api_key: str | None = None
 
     def __setattr__(self, prop, val):
         super().__setattr__(prop, val)
         if prop == "api_key" and val and not _check_api_key():
-            raise ValueError(
-                "Invalid API key. Please check your OpenAlex API key."
-            )
+            raise ValueError("Invalid API key. Please check your OpenAlex API key.")
 
 
 config = AlexConfig()
@@ -1101,6 +1101,7 @@ def autocomplete(s):
 # aliases
 People = Authors
 Journals = Sources
+
 
 def _check_api_key():
     """Check if the API key is valid."""

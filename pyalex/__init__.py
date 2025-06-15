@@ -30,10 +30,10 @@ from pyalex.api import Topic
 from pyalex.api import Topics
 from pyalex.api import Work
 from pyalex.api import Works
+from pyalex.api import _check_api_key
 from pyalex.api import autocomplete
 from pyalex.api import config
 from pyalex.api import invert_abstract
-from pyalex.api import _check_api_key
 
 __all__ = [
     "Works",
@@ -64,5 +64,5 @@ __all__ = [
     "config",
     "invert_abstract",
     "OpenAlexResponseList",
-    "_check_api_key"
+    "_check_api_key",
 ]
