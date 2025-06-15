@@ -3,6 +3,8 @@ import warnings
 from urllib.parse import quote_plus
 from urllib.parse import urlunparse
 
+import datetime
+from dataclasses import dataclass, field
 import requests
 from requests.auth import AuthBase
 from urllib3.util import Retry
@@ -12,8 +14,12 @@ try:
 except ImportError:
     __version__ = "0.0.0"
 
+def _check_api_key():
+    raise NotImplementedError()
 
-class AlexConfig(dict):
+
+@dataclass
+class AlexConfig():
     """Configuration class for OpenAlex API.
 
     Attributes
@@ -34,22 +40,23 @@ class AlexConfig(dict):
         List of HTTP status codes to retry on.
     """
 
-    def __getattr__(self, key):
-        return super().__getitem__(key)
+    email: str|None = None
+    user_agent: str = f"pyalex/{__version__}"
+    openalex_url: str = "https://api.openalex.org"
+    max_retries: int = 0
+    retry_backoff_factor: float = 0.1
+    retry_http_codes: list[int] = field(default_factory=lambda: [429, 500, 503])
+    api_key: str|None = None
 
-    def __setattr__(self, key, value):
-        return super().__setitem__(key, value)
+    def __setattr__(self, prop, val):
+        super().__setattr__(prop, val)
+        if prop == "api_key" and val and not _check_api_key():
+            raise ValueError(
+                "Invalid API key. Please check your OpenAlex API key."
+            )
 
 
-config = AlexConfig(
-    email=None,
-    api_key=None,
-    user_agent=f"pyalex/{__version__}",
-    openalex_url="https://api.openalex.org",
-    max_retries=0,
-    retry_backoff_factor=0.1,
-    retry_http_codes=[429, 500, 503],
-)
+config = AlexConfig()
 
 
 class or_(dict):
@@ -1094,3 +1101,23 @@ def autocomplete(s):
 # aliases
 People = Authors
 Journals = Sources
+
+def _check_api_key():
+    """Check if the API key is valid."""
+    bk_cods = config.retry_http_codes
+    config.retry_http_codes = None
+    dt = f"{datetime.datetime.now().year}-01-01"
+    res = None
+    try:
+        Works().filter(from_updated_date=dt).get()
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 403:
+            res = False
+        else:
+            logging.error(f"Unexpected HTTP error: {e}")
+            raise
+    else:
+        res = True
+    finally:
+        config.retry_http_codes = bk_cods
+        return res
