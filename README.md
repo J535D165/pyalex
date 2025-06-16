@@ -75,6 +75,10 @@ config.retry_backoff_factor = 0.1
 config.retry_http_codes = [429, 500, 503]
 ```
 
+### Standards
+
+OpenAlex uses standard [ISO_3166-1_alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country codes.
+
 ### Get single entity
 
 Get a single Work, Author, Source, Institution, Concept, Topic, Publisher or Funder from OpenAlex by the
