@@ -1,8 +1,11 @@
+import datetime
 import json
+import os
 from pathlib import Path
 
 import pytest
 import requests
+from dotenv import load_dotenv
 from requests import HTTPError
 
 import pyalex
@@ -20,6 +23,9 @@ from pyalex import Work
 from pyalex import Works
 from pyalex import autocomplete
 from pyalex.api import QueryError
+
+# Load environment variables from .env file
+load_dotenv()
 
 pyalex.config.max_retries = 10
 
@@ -425,3 +431,14 @@ def test_urlencoding_list():
         .count()
         == 2
     )
+
+
+@pytest.mark.skipif(
+    not os.environ.get("OPENALEX_API_KEY"),
+    reason="OPENALEX_API_KEY is not set in the environment variables",
+)
+def test_premium_api():
+    # This test requires a valid API key and email set in the config.
+    pyalex.config.api_key = os.environ["OPENALEX_API_KEY"]
+
+    Works().filter(from_updated_date=f"{datetime.datetime.now().year}-01-01").get()
