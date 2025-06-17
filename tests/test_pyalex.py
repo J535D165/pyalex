@@ -1,8 +1,11 @@
+import datetime
 import json
+import os
 from pathlib import Path
 
 import pytest
 import requests
+from dotenv import load_dotenv
 from requests import HTTPError
 
 import pyalex
@@ -20,6 +23,9 @@ from pyalex import Work
 from pyalex import Works
 from pyalex import autocomplete
 from pyalex.api import QueryError
+
+# Load environment variables from .env file
+load_dotenv()
 
 pyalex.config.max_retries = 10
 
@@ -380,19 +386,6 @@ def test_subset():
     assert url == Works().select(["id", "doi", "display_name"]).url
 
 
-def test_auth():
-    w_no_auth = Works().get()
-    pyalex.config.email = "pyalex_github_unittests@example.com"
-    pyalex.config.api_key = "my_api_key"
-
-    w_auth = Works().get()
-
-    pyalex.config.email = None
-    pyalex.config.api_key = None
-
-    assert len(w_no_auth) == len(w_auth)
-
-
 def test_autocomplete_works():
     w = Works().filter(publication_year=2023).autocomplete("planetary boundaries")
 
@@ -425,3 +418,33 @@ def test_urlencoding_list():
         .count()
         == 2
     )
+
+
+def test_premium_api_no_valid_key():
+    # This test checks if the API works without a valid API key.
+    # It should return the same results as with a valid key.
+    w_no_auth = Works().get()
+    pyalex.config.email = "pyalex_github_unittests@example.com"
+    pyalex.config.api_key = "my_api_key"
+
+    w_auth = Works().get()
+
+    pyalex.config.email = None
+    pyalex.config.api_key = None
+
+    assert len(w_no_auth) == len(w_auth)
+
+
+@pytest.mark.skipif(
+    not os.environ.get("OPENALEX_API_KEY"),
+    reason="OPENALEX_API_KEY is not set in the environment variables",
+)
+def test_premium_api():
+    # This test requires a valid API key set in the config. If from_updated_date
+    # is set, it should return works updated since the start of the current
+    # year. If no API key is set, it should raise an error.
+    pyalex.config.api_key = os.environ["OPENALEX_API_KEY"]
+
+    Works().filter(from_updated_date=f"{datetime.datetime.now().year}-01-01").get()
+
+    pyalex.config.api_key = None
