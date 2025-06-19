@@ -432,6 +432,9 @@ from pyalex import Works
 Works().filter(author={"id": "A2887243803"}).get()
 ```
 
+> [!WARNING]
+> This gets only the first 25 works of the author. To get all of them, see the [paging section](#paging).
+
 ### Dataset publications in the global south
 
 ```python
