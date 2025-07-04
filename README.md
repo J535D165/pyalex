@@ -75,6 +75,10 @@ config.retry_backoff_factor = 0.1
 config.retry_http_codes = [429, 500, 503]
 ```
 
+### Standards
+
+OpenAlex uses standard [ISO_3166-1_alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country codes.
+
 ### Get single entity
 
 Get a single Work, Author, Source, Institution, Concept, Topic, Publisher or Funder from OpenAlex by the
@@ -119,6 +123,8 @@ Topics().random()
 Publishers().random()
 Funders().random()
 ```
+
+Check also [sample](#sample), which does support filters.
 
 #### Get abstract
 
@@ -239,6 +245,14 @@ OpenAlex reference: [Sample entity lists](https://docs.openalex.org/how-to-use-t
 ```python
 Works().sample(100, seed=535).get()
 ```
+
+Get 10 random German-based institutions:
+
+```python
+Institutions().filter(country_code="DE").sample(10).get()
+```
+
+Check also [random](#get-random), which does not support filters.
 
 #### Logical expressions
 
@@ -411,6 +425,25 @@ with open(Path("works.json")) as f:
 
 A list of awesome use cases of the OpenAlex dataset.
 
+### Search author by name and affiliation
+
+This requires searching for the affiliation first, retrieving the affiliation ID, and then searching for the author while filtering for the affiliation:
+
+```python
+from pyalex import Authors, Institutions
+import logging
+
+# Search for the institution
+insts = Institutions().search("MIT").get()
+logging.info(f"{len(insts)} search results found for the institution")
+inst_id = insts[0]["id"].replace("https://openalex.org/", "")
+
+# Search for the author within the institution
+auths = Authors().search("Daron Acemoglu").filter(affiliations={"institution":{"id": inst_id}}).get()
+logging.info(f"{len(auths)} search results found for the author")
+auth = auths[0]
+```
+
 ### Cited publications (works referenced by this paper, outgoing citations)
 
 ```python
@@ -436,6 +469,9 @@ from pyalex import Works
 
 Works().filter(author={"id": "A2887243803"}).get()
 ```
+
+> [!WARNING]
+> This gets only the first 25 works of the author. To get all of them, see the [paging section](#paging).
 
 ### Dataset publications in the global south
 
@@ -487,6 +523,23 @@ OpenAlex experiments with authenticated requests at the moment. Authenticate you
 import pyalex
 
 pyalex.config.api_key = "<MY_KEY>"
+```
+
+To check out whether your API key is indeed working, you can use the following code:
+
+```python
+import requests
+pyalex.config.retry_http_codes = None
+try:
+    pyalex.Works().filter(from_updated_date="2023-01-12").get()
+except requests.exceptions.HTTPError as e:
+    if e.response.status_code == 403:
+        logging.info("API key is NOT working 🔴")
+    else:
+        logging.error(f"Unexpected HTTP error: {e}")
+        raise
+else:
+    logging.info("API key is working 👍")
 ```
 
 ## Alternatives
