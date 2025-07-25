@@ -14,6 +14,7 @@ except ImportError:
 
 logger = logging.getLogger("pyalex")
 
+
 class AlexConfig(dict):
     """Configuration class for OpenAlex API.
 
