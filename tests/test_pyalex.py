@@ -230,7 +230,6 @@ def test_referenced_works():
     assert r.meta["count"] <= len(w["referenced_works"])
 
 
-@pytest.mark.xfail()
 def test_code_examples():
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code  # noqa
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc  # noqa
@@ -421,18 +420,10 @@ def test_urlencoding_list():
 
 
 def test_premium_api_no_valid_key():
-    # This test checks if the API works without a valid API key.
-    # It should return the same results as with a valid key.
-    w_no_auth = Works().get()
     pyalex.config.email = "pyalex_github_unittests@example.com"
     pyalex.config.api_key = "my_api_key"
-
-    w_auth = Works().get()
-
-    pyalex.config.email = None
-    pyalex.config.api_key = None
-
-    assert len(w_no_auth) == len(w_auth)
+    with pytest.raises(QueryError):
+        Works().get()
 
 
 @pytest.mark.skipif(
