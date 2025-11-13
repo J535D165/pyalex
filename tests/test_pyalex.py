@@ -230,7 +230,6 @@ def test_referenced_works():
     assert r.meta["count"] <= len(w["referenced_works"])
 
 
-@pytest.mark.xfail()
 def test_code_examples():
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code  # noqa
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc  # noqa
