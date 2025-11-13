@@ -516,7 +516,7 @@ class BaseOpenAlex:
 
         res = session.get(url, auth=OpenAlexAuth(config))
 
-        if res.status_code == 403:
+        if res.status_code == 400:
             if (
                 isinstance(res.json()["error"], str)
                 and "query parameters" in res.json()["error"]
