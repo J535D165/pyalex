@@ -522,6 +522,10 @@ class BaseOpenAlex:
                 and "query parameters" in res.json()["error"]
             ):
                 raise QueryError(res.json()["message"])
+        if res.status_code == 401 and "API key" in res.json()["error"]:
+            raise QueryError(
+                f"{res.json()['error']}. Did you configure a valid API key?"
+            )
 
         res.raise_for_status()
         res_json = res.json()

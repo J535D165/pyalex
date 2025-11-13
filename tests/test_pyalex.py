@@ -421,18 +421,10 @@ def test_urlencoding_list():
 
 
 def test_premium_api_no_valid_key():
-    # This test checks if the API works without a valid API key.
-    # It should return the same results as with a valid key.
-    w_no_auth = Works().get()
     pyalex.config.email = "pyalex_github_unittests@example.com"
     pyalex.config.api_key = "my_api_key"
-
-    w_auth = Works().get()
-
-    pyalex.config.email = None
-    pyalex.config.api_key = None
-
-    assert len(w_no_auth) == len(w_auth)
+    with pytest.raises(QueryError):
+        Works().get()
 
 
 @pytest.mark.skipif(
