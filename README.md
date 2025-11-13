@@ -197,6 +197,17 @@ Works()
   .get()
 ```
 
+#### Filter on a set of values
+You can filter on a set of values, for example if you want all works from a list of DOI's:
+
+```python
+Works()
+  .filter_or(doi=["10.1016/s0924-9338(99)80239-9", "10.1002/andp.19213690304"])
+  .get()
+```
+
+You can use a maximum of 100 items in the set of values. Also note that OpenAlex allows a maximum URL length of 4096 characters. If you have a big list of identifiers you want to filter on you can run into this limit. It can be helpful to use the short form of the identifiers, so `W2001676859` instead of `https://openalex.org/W2001676859` and `10.1002/andp.19213690304` instead of `https://doi.org/10.1002/andp.19213690304`.
+
 #### Search entities
 
 OpenAlex reference: [The search parameter](https://docs.openalex.org/api-entities/works/search-works)
