@@ -437,7 +437,9 @@ class BaseOpenAlex:
                 "Object has no attribute 'filter_search'. Did you mean 'search_filter'?"
             )
 
-        return getattr(self, key)
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{key}'"
+        )
 
     def __getitem__(self, record_id):
         if isinstance(record_id, list):
