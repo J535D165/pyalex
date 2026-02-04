@@ -5,10 +5,10 @@ except ImportError:
     __version__ = "0.0.0"
     __version_tuple__ = (0, 0, 0)
 
-from pyalex.api import Award
-from pyalex.api import Awards
 from pyalex.api import Author
 from pyalex.api import Authors
+from pyalex.api import Award
+from pyalex.api import Awards
 from pyalex.api import Concept
 from pyalex.api import Concepts
 from pyalex.api import Domain
