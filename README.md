@@ -75,15 +75,30 @@ from pyalex import (
 
 ### Rate limits and authentication [Changed!]
 
-The OpenAlex API uses a credit-based rate limiting system. Different endpoint types consume different amounts of credits per request. Singleton requests are for free, other requests cost credits. Read about this in OpenAlex Documentation [Rate limits and authentication](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication).
+**⚠️ API Key Required**: Starting February 13, 2026, an API key is **required** to use the OpenAlex API. API keys are free!
 
-You can get your OpenAlex API key in the Settings menu at their website: https://openalex.org/settings/api.
+The OpenAlex API uses a credit-based rate limiting system. Different endpoint types consume different amounts of credits per request:
+
+- **Without API key**: 100 credits per day (testing/demos only)
+- **With free API key**: 100,000 credits per day
+- **Singleton requests** (e.g., `/works/W123`): Free (0 credits)
+- **List requests** (e.g., `/works?filter=...`): 1 credit each
+
+All users are limited to a maximum of 100 requests per second.
+
+#### Get an API Key
+
+1. Create a free account at [openalex.org](https://openalex.org/)
+2. Go to [openalex.org/settings/api](https://openalex.org/settings/api) to get your API key
+3. Configure PyAlex with your key:
 
 ```python
 import pyalex
 
-pyalex.config.api_key = "<MY_KEY>"
+pyalex.config.api_key = "<YOUR_API_KEY>"
 ```
+
+For more information, see the [OpenAlex Rate limits and authentication documentation](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication).
 
 
 ### Get single entity
