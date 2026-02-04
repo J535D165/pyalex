@@ -10,11 +10,13 @@ from requests import HTTPError
 
 import pyalex
 from pyalex import Authors
+from pyalex import Awards
 from pyalex import Concepts
 from pyalex import Domains
 from pyalex import Fields
 from pyalex import Funders
 from pyalex import Institutions
+from pyalex import Keywords
 from pyalex import Publishers
 from pyalex import Sources
 from pyalex import Subfields
@@ -32,10 +34,12 @@ pyalex.config.max_retries = 10
 
 OPEN_ALEX_ENTITIES = [
     Authors,
+    Awards,
     Domains,
     Fields,
     Funders,
     Institutions,
+    Keywords,
     Publishers,
     Sources,
     Subfields,

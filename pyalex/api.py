@@ -1033,6 +1033,30 @@ class Funders(BaseOpenAlex):
     resource_class = Funder
 
 
+class Award(OpenAlexEntity):
+    """Class representing an award entity in OpenAlex."""
+
+    pass
+
+
+class Awards(BaseOpenAlex):
+    """Class representing a collection of award entities in OpenAlex."""
+
+    resource_class = Award
+
+
+class Keyword(OpenAlexEntity):
+    """Class representing a keyword entity in OpenAlex."""
+
+    pass
+
+
+class Keywords(BaseOpenAlex):
+    """Class representing a collection of keyword entities in OpenAlex."""
+
+    resource_class = Keyword
+
+
 class Autocomplete(OpenAlexEntity):
     """Class representing an autocomplete entity in OpenAlex."""
 
