@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from functools import wraps
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,33 @@ load_dotenv()
 pyalex.config.max_retries = 10
 
 
+def requires_api_key(reason="OpenAlex requires authentication for this operation"):
+    """Decorator for API Key requirement.
+
+    Decorator that skips test if OPENALEX_API_KEY is not set, and
+    sets it for the test.
+    """
+
+    def decorator(func):
+        @pytest.mark.skipif(
+            not os.environ.get("OPENALEX_API_KEY"),
+            reason=reason,
+        )
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            api_key = os.environ.get("OPENALEX_API_KEY")
+            original_api_key = pyalex.config.api_key
+            try:
+                pyalex.config.api_key = api_key
+                return func(*args, **kwargs)
+            finally:
+                pyalex.config.api_key = original_api_key
+
+        return wrapper
+
+    return decorator
+
+
 OPEN_ALEX_ENTITIES = [
     Authors,
     Awards,
@@ -58,43 +86,52 @@ def test_config():
     pyalex.config.api_key = None
 
 
+@requires_api_key(reason="OpenAlex requires authentication for unfiltered queries")
 @pytest.mark.parametrize("entity", OPEN_ALEX_ENTITIES)
 def test_meta_entities(entity):
     r = entity().get()
     assert r.meta.get("count", False)
 
 
+@requires_api_key(reason="OpenAlex requires authentication for unfiltered queries")
 @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
 def test_meta_entities_deprecated():
     r = Concepts().get()
     assert r.meta.get("count", False)
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_works_params():
     assert len(Works(params={"filter": {"publication_year": "2020"}}).get()) == 25
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_works():
     assert len(Works().filter(publication_year=2020).get()) == 25
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_works_count():
     assert Works().filter(publication_year=2020).count() > 10_000_000
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_per_page():
     assert len(Works().filter(publication_year=2020).get(per_page=200)) == 200
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_per_page_none():
     assert len(Works().filter(publication_year=2020).get(per_page=None)) == 25
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_per_page_1000():
     with pytest.raises(ValueError):
         Works().filter(publication_year=2020).get(per_page=1000)
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_per_page_str():
     with pytest.raises(ValueError):
         Works().filter(publication_year=2020).get(per_page="100")
@@ -132,10 +169,12 @@ def test_work_error():
         Works()["NotAWorkID"]
 
 
+@requires_api_key(reason="OpenAlex requires authentication for random() endpoint")
 def test_random_works():
     assert isinstance(Works().random(), dict)
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_multi_works():
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
@@ -148,6 +187,7 @@ def test_multi_works():
     )
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_works_multifilter():
     r = requests.get(
         "https://api.openalex.org/works?filter=publication_year:2020,is_oa:true"
@@ -178,6 +218,7 @@ def test_works_url():
     assert Works().url == "https://api.openalex.org/works"
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_works_multifilter_meta():
     r1 = Works().filter(publication_year=2020, is_oa=True).get()
     r2 = Works().filter(publication_year=2020).filter(is_oa=True).get()
@@ -185,11 +226,13 @@ def test_works_multifilter_meta():
     assert r1.meta["count"] == r2.meta["count"]
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_query_error():
     with pytest.raises(QueryError):
         Works().filter(publication_year_error=2020).get()
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_data_publications():
     w = (
         Works()
@@ -202,6 +245,7 @@ def test_data_publications():
     assert len(w) > 20
 
 
+@requires_api_key(reason="OpenAlex requires authentication for search queries")
 def test_search():
     w = (
         Works()
@@ -215,6 +259,7 @@ def test_search():
     assert w[0]["doi"] == "https://doi.org/10.1038/s42256-020-00287-7"
 
 
+@requires_api_key(reason="OpenAlex requires authentication for search_filter queries")
 def test_search_filter():
     r = requests.get(
         "https://api.openalex.org/authors?filter=display_name.search:einstein"
@@ -225,6 +270,7 @@ def test_search_filter():
     assert r["meta"]["count"] == a_count
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_referenced_works():
     # the work to extract the referenced works of
     w = Works()["W2741809807"]
@@ -234,6 +280,7 @@ def test_referenced_works():
     assert r.meta["count"] <= len(w["referenced_works"])
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_code_examples():
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code  # noqa
     # /works?filter=institutions.is_global_south:true,type:dataset&group-by=institutions.country_code&sort=count:desc  # noqa
@@ -264,6 +311,7 @@ def test_serializable(tmpdir):
         assert "W4238809453" in json.load(f)["id"]
 
 
+@requires_api_key(reason="OpenAlex requires authentication for unfiltered queries")
 def test_serializable_list(tmpdir):
     with open(Path(tmpdir, "test.json"), "w") as f:
         json.dump(Works().get(), f)
@@ -289,6 +337,7 @@ def test_ngrams_with_metadata():
     assert meta["count"] == 1068
 
 
+@requires_api_key(reason="OpenAlex requires authentication for random() endpoint")
 def test_random_publishers():
     assert isinstance(Publishers().random(), dict)
 
@@ -389,18 +438,23 @@ def test_subset():
     assert url == Works().select(["id", "doi", "display_name"]).url
 
 
+@requires_api_key(
+    reason="OpenAlex requires authentication for filter queries with autocomplete"
+)
 def test_autocomplete_works():
     w = Works().filter(publication_year=2023).autocomplete("planetary boundaries")
 
     assert all(["external_id" in x for x in w])
 
 
+@requires_api_key(reason="OpenAlex requires authentication for autocomplete endpoint")
 def test_autocomplete():
     a = autocomplete("stockholm resilience")
 
     assert all(["external_id" in x for x in a])
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_filter_urlencoding():
     assert Works().filter(doi="10.1207/s15327809jls0703&4_2").count() == 1
     assert (
@@ -409,6 +463,7 @@ def test_filter_urlencoding():
     )
 
 
+@requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_urlencoding_list():
     assert (
         Works()
@@ -428,6 +483,40 @@ def test_premium_api_no_valid_key():
     pyalex.config.api_key = "my_api_key"
     with pytest.raises(QueryError):
         Works().get()
+
+
+def test_unauthenticated_filter_call():
+    """Test that filter/search calls without authentication will fail.
+
+    (post Feb 11, 2025)
+
+    This test documents the expected behavior when OpenAlex enforces their new policy
+    allowing only singleton calls without authentication. Filter and search queries
+    will require an API key.
+
+    Note: This test currently passes the filter call because OpenAlex hasn't yet
+    enforced the restriction. Once the policy is enforced, this test should fail
+    and we'll need to mark it as @requires_api_key instead.
+    """
+    # Ensure no API key is set
+    original_api_key = pyalex.config.api_key
+    pyalex.config.api_key = None
+
+    try:
+        # This should work for now, but will fail once OpenAlex enforces the policy
+        # Singleton calls like Works()["ID"] should still work without auth
+        result = Works()["W2741809807"]
+        assert result["id"] == "https://openalex.org/W2741809807"
+
+        # Filter/search calls will fail once policy is enforced
+        # For now, they still work, so we document the expected future behavior
+        # Once OpenAlex enforces the policy, this should raise an error
+        filter_result = Works().filter(publication_year=2020).get()
+        # If we get here, the policy hasn't been enforced yet
+        assert len(filter_result) > 0
+    finally:
+        # Restore original API key
+        pyalex.config.api_key = original_api_key
 
 
 @pytest.mark.skipif(
