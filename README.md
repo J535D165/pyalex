@@ -44,6 +44,7 @@ We aim to cover the entire API, and we are looking for help. We are welcoming Pu
 
 - **Pipe operations** - PyAlex can handle multiple operations in a sequence. This allows the developer to write understandable queries. For examples, see [code snippets](#code-snippets).
 - **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/api-entities/works/work-object#abstract_inverted_index) due to legal constraints. PyAlex can convert the inverted abstracts into [plaintext abstracts on the fly](#get-abstract).
+- **Fetch content in PDF and TEI format** - Retrieve full-text content from OpenAlex in PDF or TEI XML formats. See [fetching content](#fetch-content-in-pdf-and-tei-format).
 - **Permissive license** - OpenAlex data is CC0 licensed :raised_hands:. PyAlex is published under the MIT license.
 
 ## Installation
@@ -167,6 +168,55 @@ w["abstract"]
 ```
 
 Please respect the legal constraints when using this feature.
+
+#### Fetch content in PDF and TEI format
+
+OpenAlex reference: [Get content](https://docs.openalex.org/how-to-use-the-api/get-content)
+
+Only for Works. Retrieve the full-text content of a work in PDF or TEI (Text Encoding Initiative) XML format, if available.
+
+```python
+from pyalex import Works
+
+# Get a work
+w = Works()["W4412002745"]
+
+# Access the PDF content
+pdf_content = w.pdf.get()
+
+# Or access the TEI content
+tei_content = w.tei.get()
+```
+
+You can also download the content directly to a file:
+
+```python
+from pyalex import Works
+
+w = Works()["W4412002745"]
+
+# Download PDF to a file
+w.pdf.download("document.pdf")
+
+# Download TEI to a file
+w.tei.download("document.xml")
+```
+
+You can also get the URL of the content without downloading it:
+
+```python
+from pyalex import Works
+
+w = Works()["W4412002745"]
+
+# Get the URL of the PDF
+pdf_url = w.pdf.url
+
+# Get the URL of the TEI
+tei_url = w.tei.url
+```
+
+Note: Content availability depends on the publisher's open access policies and licensing agreements.
 
 ### Get lists of entities
 
