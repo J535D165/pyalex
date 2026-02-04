@@ -5,6 +5,8 @@ except ImportError:
     __version__ = "0.0.0"
     __version_tuple__ = (0, 0, 0)
 
+from pyalex.api import Award
+from pyalex.api import Awards
 from pyalex.api import Author
 from pyalex.api import Authors
 from pyalex.api import Concept
@@ -18,6 +20,8 @@ from pyalex.api import Funders
 from pyalex.api import Institution
 from pyalex.api import Institutions
 from pyalex.api import Journals
+from pyalex.api import Keyword
+from pyalex.api import Keywords
 from pyalex.api import OpenAlexResponseList
 from pyalex.api import People
 from pyalex.api import Publisher
@@ -35,6 +39,8 @@ from pyalex.api import config
 from pyalex.api import invert_abstract
 
 __all__ = [
+    "Award",
+    "Awards",
     "Works",
     "Work",
     "Authors",
@@ -57,6 +63,8 @@ __all__ = [
     "Subfield",
     "Topics",
     "Topic",
+    "Keywords",
+    "Keyword",
     "People",
     "Journals",
     "autocomplete",

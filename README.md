@@ -13,7 +13,18 @@ institutions, and more. OpenAlex offers a robust, open, and free [REST API](http
 PyAlex is a lightweight and thin Python interface to this API. PyAlex tries to
 stay as close as possible to the design of the original service.
 
-The following features of OpenAlex are currently supported by PyAlex:
+The following entities of OpenAlex are currently supported by PyAlex:
+
+- [x] Work
+- [x] Author
+- [x] Source
+- [x] Institution
+- [x] Concept
+- [x] Topic
+- [x] Publisher
+- [x] Funder
+
+Including the following functionality:
 
 - [x] Get single entities
 - [x] Filter entities
@@ -24,7 +35,7 @@ The following features of OpenAlex are currently supported by PyAlex:
 - [x] Sample
 - [x] Pagination
 - [x] Autocomplete endpoint
-- [x] N-grams
+- [x] N-grams [Deprecated by OpenAlex]
 - [x] Authentication
 
 We aim to cover the entire API, and we are looking for help. We are welcoming Pull Requests.
@@ -48,7 +59,18 @@ pip install pyalex
 PyAlex offers support for all [Entity Objects](https://docs.openalex.org/api-entities/entities-overview): [Works](https://docs.openalex.org/api-entities/works), [Authors](https://docs.openalex.org/api-entities/authors), [Sources](https://docs.openalex.org/api-entities/sourcese), [Institutions](https://docs.openalex.org/api-entities/institutions), [Topics](https://docs.openalex.org/api-entities/topics), [Publishers](https://docs.openalex.org/api-entities/publishers), and [Funders](https://docs.openalex.org/api-entities/funders).
 
 ```python
-from pyalex import Works, Authors, Sources, Institutions, Topics, Publishers, Funders
+from pyalex import (
+  Works,
+  Authors,
+  Sources,
+  Institutions,
+  Topics,
+  Keywords,
+  Publishers,
+  Funders,
+  Awards,
+  Concepts,
+)
 ```
 
 ### The polite pool
@@ -81,7 +103,7 @@ OpenAlex uses standard [ISO_3166-1_alpha-2](https://en.wikipedia.org/wiki/ISO_31
 
 ### Get single entity
 
-Get a single Work, Author, Source, Institution, Concept, Topic, Publisher or Funder from OpenAlex by the
+Get a single Work, Author, Source, Institution, Concept, Topic, Publisher, Funders or Awards from OpenAlex by the
 OpenAlex ID, or by DOI or ROR.
 
 ```python
