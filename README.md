@@ -73,33 +73,33 @@ from pyalex import (
 )
 ```
 
-### The polite pool
+### Rate limits and authentication [Changed!]
 
-[The polite pool](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication#the-polite-pool) has much
-faster and more consistent response times. To get into the polite pool, you
-set your email:
+**⚠️ API Key Required**: Starting February 13, 2026, an API key is **required** to use the OpenAlex API. API keys are free!
+
+The OpenAlex API uses a credit-based rate limiting system. Different endpoint types consume different amounts of credits per request:
+
+- **Without API key**: 100 credits per day (testing/demos only)
+- **With free API key**: 100,000 credits per day
+- **Singleton requests** (e.g., `/works/W123`): Free (0 credits)
+- **List requests** (e.g., `/works?filter=...`): 1 credit each
+
+All users are limited to a maximum of 100 requests per second.
+
+#### Get an API Key
+
+1. Create a free account at [openalex.org](https://openalex.org/)
+2. Go to [openalex.org/settings/api](https://openalex.org/settings/api) to get your API key
+3. Configure PyAlex with your key:
 
 ```python
 import pyalex
 
-pyalex.config.email = "mail@example.com"
+pyalex.config.api_key = "<YOUR_API_KEY>"
 ```
 
-### Max retries
+For more information, see the [OpenAlex Rate limits and authentication documentation](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication).
 
-By default, PyAlex will raise an error at the first failure when querying the OpenAlex API. You can set `max_retries` to a number higher than 0 to allow PyAlex to retry when an error occurs. `retry_backoff_factor` is related to the delay between two retry, and `retry_http_codes` are the HTTP error codes that should trigger a retry.
-
-```python
-from pyalex import config
-
-config.max_retries = 0
-config.retry_backoff_factor = 0.1
-config.retry_http_codes = [429, 500, 503]
-```
-
-### Standards
-
-OpenAlex uses standard [ISO_3166-1_alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country codes.
 
 ### Get single entity
 
@@ -416,6 +416,10 @@ with open(Path("works.json")) as f:
     works = [Work(w) for w in json.load(f)]
 ```
 
+## Standards
+
+OpenAlex uses standard [ISO_3166-1_alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country codes.
+
 ## Code snippets
 
 A list of awesome use cases of the OpenAlex dataset.
@@ -494,19 +498,20 @@ Works() \
 
 ```
 
-## Experimental
 
-### Authentication
+## Troubleshooting
 
-OpenAlex experiments with authenticated requests at the moment. Authenticate your requests with
+### Max retries
+
+By default, PyAlex will raise an error at the first failure when querying the OpenAlex API. You can set `max_retries` to a number higher than 0 to allow PyAlex to retry when an error occurs. `retry_backoff_factor` is related to the delay between two retry, and `retry_http_codes` are the HTTP error codes that should trigger a retry.
 
 ```python
-import pyalex
+from pyalex import config
 
-pyalex.config.api_key = "<MY_KEY>"
+config.max_retries = 0
+config.retry_backoff_factor = 0.1
+config.retry_http_codes = [429, 500, 503]
 ```
-
-If you configure an invalid API key all requests to OpenAlex will fail.
 
 ## Alternatives
 
