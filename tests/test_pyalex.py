@@ -443,3 +443,46 @@ def test_premium_api():
     Works().filter(from_updated_date=f"{datetime.datetime.now().year}-01-01").get()
 
     pyalex.config.api_key = None
+
+
+def test_work_pdf_and_tei_download(tmpdir):
+    """Test downloading PDF and TEI content for a Work.
+
+    This test verifies that:
+    1. A Work object has accessible pdf and tei properties
+    2. PDF and TEI objects have correct URLs
+    3. PDF and TEI content can be retrieved and downloaded to files
+    """
+
+    pyalex.config.api_key = os.environ["OPENALEX_API_KEY"]
+
+    # Get a work
+    work = Works()["W4412002745"]
+
+    # Test that pdf and tei properties return the correct types
+    assert work.pdf is not None
+    assert work.tei is not None
+
+    # Test that PDF has a valid URL
+    pdf_url = work.pdf.url
+    assert pdf_url.endswith(".pdf")
+    assert "content.openalex.org" in pdf_url
+    assert "W4412002745" in pdf_url
+
+    # Test that TEI has a valid URL
+    tei_url = work.tei.url
+    assert "grobid-xml" in tei_url
+    assert "content.openalex.org" in tei_url
+    assert "W4412002745" in tei_url
+
+    # Test downloading PDF content
+    pdf_path = Path(tmpdir) / "test.pdf"
+    work.pdf.download(str(pdf_path))
+    assert pdf_path.exists()
+    assert pdf_path.stat().st_size > 0
+
+    # Test downloading TEI content
+    tei_path = Path(tmpdir) / "test.xml"
+    work.tei.download(str(tei_path))
+    assert tei_path.exists()
+    assert tei_path.stat().st_size > 0
