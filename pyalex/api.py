@@ -1,10 +1,12 @@
 import logging
 import warnings
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Iterator
 from typing import List
+from typing import Literal
 from typing import Optional
 from typing import Type
 from typing import Union
@@ -46,21 +48,59 @@ class AlexConfig(Dict[str, Any]):
         List of HTTP status codes to retry on.
     """
 
-    def __getattr__(self, key: str) -> Any:
-        return super().__getitem__(key)
+    # Attributes with type annotations for static analysis and autocomplete
+    email: Optional[str]
+    api_key: Optional[str]
+    user_agent: str
+    openalex_url: str
+    max_retries: int
+    retry_backoff_factor: float
+    retry_http_codes: List[int]
 
-    def __setattr__(self, key: str, value: Any) -> None:
-        super().__setitem__(key, value)
+    # Define all attributes in __init__ to ensure that type checkers can and will only recognize them
+    # This provides static checking support for potential typos by users
+    # For example, type checker will not allow `config.emaila`
+    # but `config.emaila` can still run and be accessed
+    def __init__(
+        self,
+        email: Optional[str] = None,
+        api_key: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        openalex_url: str = "https://api.openalex.org",
+        max_retries: int = 0,
+        retry_backoff_factor: float = 0.1,
+        retry_http_codes: Optional[List[int]] = None,
+    ) -> None:
+        if user_agent is None:
+            user_agent = f"pyalex/{__version__}"
+        if retry_http_codes is None:
+            retry_http_codes = [429, 500, 503]
+
+        super().__init__(
+            email=email,
+            api_key=api_key,
+            user_agent=user_agent,
+            openalex_url=openalex_url,
+            max_retries=max_retries,
+            retry_backoff_factor=retry_backoff_factor,
+            retry_http_codes=retry_http_codes,
+        )
+
+    # Enable dynamic property capture only at runtime
+    # This ensures that the type checker only recognizes properties explicitly declared above
+    # but at runtime, dynamic dict attributes can still be accessed.
+    if not TYPE_CHECKING:
+
+        def __getattr__(self, key: str) -> Any:
+            return super().__getitem__(key)
+
+        def __setattr__(self, key: str, value: Any) -> None:
+            super().__setitem__(key, value)
 
 
 config = AlexConfig(
     email=None,
     api_key=None,
-    user_agent=f"pyalex/{__version__}",
-    openalex_url="https://api.openalex.org",
-    max_retries=0,
-    retry_backoff_factor=0.1,
-    retry_http_codes=[429, 500, 503],
 )
 
 
@@ -138,7 +178,9 @@ def _quote_oa_value(v: Any) -> Any:
     return v
 
 
-def _flatten_kv(d: Any, prefix: Optional[str] = None, logical: str = "+") -> str:
+def _flatten_kv(
+    d: Any, prefix: Optional[str] = None, logical: Literal["+", "|"] = "+"
+) -> str:
     """Flatten a dictionary into a key-value string for the OpenAlex API.
 
     Parameters
@@ -147,7 +189,7 @@ def _flatten_kv(d: Any, prefix: Optional[str] = None, logical: str = "+") -> str
         Dictionary to be flattened.
     prefix : str, optional
         Prefix for the keys.
-    logical : str, optional
+    logical : Literal["+", "|"] , optional
         Logical operator to join values.
 
     Returns
@@ -352,7 +394,7 @@ class Paginator:
     def __init__(
         self,
         endpoint_class: "BaseOpenAlex",
-        method: str = "cursor",
+        method: Literal["cursor", "page"] = "cursor",
         value: Optional[Union[str, int]] = None,
         per_page: Optional[int] = None,
         n_max: Optional[int] = None,
@@ -622,7 +664,7 @@ class BaseOpenAlex:
 
     def paginate(
         self,
-        method: str = "cursor",
+        method: Literal["cursor", "page"] = "cursor",
         page: int = 1,
         per_page: Optional[int] = None,
         cursor: str = "*",
