@@ -60,7 +60,8 @@ class AlexConfig(Dict[str, Any]):
     retry_backoff_factor: float
     retry_http_codes: List[int]
 
-    # Define all attributes in __init__ to ensure that type checkers can and will only recognize them
+    # Define all attributes in __init__ to ensure that
+    # type checkers can and will only recognize them.
     # This provides static checking support for potential typos by users
     # For example, type checker will not allow `config.emaila`
     # but `config.emaila` can still run and be accessed
@@ -90,7 +91,7 @@ class AlexConfig(Dict[str, Any]):
         )
 
     # Enable dynamic property capture only at runtime
-    # This ensures that the type checker only recognizes properties explicitly declared above
+    # Type checkers only recognize properties explicitly declared above
     # but at runtime, dynamic dict attributes can still be accessed.
     if not TYPE_CHECKING:
 
