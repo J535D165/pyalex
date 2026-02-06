@@ -30,6 +30,9 @@ requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
 [tool.setuptools]
 packages = ["pyalex"]
 
+[tool.setuptools.package-data]
+pyalex = ["py.typed"]
+
 [tool.setuptools_scm]
 write_to = "pyalex/_version.py"
 
