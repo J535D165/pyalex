@@ -203,7 +203,6 @@ def test_works_multifilter():
     #     .filter(publication_year=2020, open_access={"is_oa": True})
     #     .get()
     # )
-    assert r.meta is not None
     assert r1.meta is not None
     assert r2.meta is not None
 
