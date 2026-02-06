@@ -675,7 +675,7 @@ class BaseOpenAlex(Generic[T]):
         per_page: Optional[int] = None,
         cursor: str = "*",
         n_max: Optional[int] = 10000,
-    ) -> Paginator:
+    ) -> Paginator[T]:
         """Paginate results from the API.
 
         Parameters
