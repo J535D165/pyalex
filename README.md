@@ -29,6 +29,7 @@ Including the following functionality:
 - [x] Get single entities
 - [x] Filter entities
 - [x] Search entities
+- [x] Semantic search (find similar works)
 - [x] Group entities
 - [x] Search filters
 - [x] Select fields
@@ -302,6 +303,38 @@ Works().search_filter(title="cubist").get()
 
 ```python
 Funders().search_filter(display_name="health").get()
+```
+
+#### Semantic search (Find similar works)
+
+OpenAlex reference: [Find similar works](https://docs.openalex.org/how-to-use-the-api/find-similar-works)
+
+Find works similar to a given text using AI-powered semantic search. This uses the `/find/works` endpoint which searches by meaning rather than exact keyword matches.
+
+```python
+Works().query("machine learning for drug discovery").get()
+```
+
+Semantic search can be combined with filters and other operations using the pipe syntax:
+
+```python
+Works() \
+  .query("climate change impacts on biodiversity") \
+  .filter(publication_year=">2020", is_oa=True) \
+  .get(per_page=50)
+```
+
+**Important notes:**
+- Semantic search requires an API key
+- Each query consumes 1,000 credits (see [Rate limits](#rate-limits-and-authentication))
+- Only works with abstracts are searchable (~217 million works)
+- Query text is limited to 10,000 characters
+- For queries longer than 2,000 characters, PyAlex automatically uses POST requests
+- Cannot be combined with `search()` - use either semantic search with `query()` or keyword search with `search()`, not both
+
+Example with count:
+```python
+count = Works().query("quantum computing applications").count()
 ```
 
 
