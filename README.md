@@ -45,6 +45,7 @@ We aim to cover the entire API, and we are looking for help. We are welcoming Pu
 
 - **Pipe operations** - PyAlex can handle multiple operations in a sequence. This allows the developer to write understandable queries. For examples, see [code snippets](#code-snippets).
 - **Plaintext abstracts** - OpenAlex [doesn't include plaintext abstracts](https://docs.openalex.org/api-entities/works/work-object#abstract_inverted_index) due to legal constraints. PyAlex can convert the inverted abstracts into [plaintext abstracts on the fly](#get-abstract).
+- **Find similar works** - Use semantic search to find works similar to a given text via `Works().similar()`. See [find similar works](#semantic-search-find-similar-works).
 - **Fetch content in PDF and TEI format** - Retrieve full-text content from OpenAlex in PDF or TEI XML formats. See [fetching content](#fetch-content-in-pdf-and-tei-format).
 - **Permissive license** - OpenAlex data is CC0 licensed :raised_hands:. PyAlex is published under the MIT license.
 
@@ -309,32 +310,28 @@ Funders().search_filter(display_name="health").get()
 
 OpenAlex reference: [Find similar works](https://docs.openalex.org/how-to-use-the-api/find-similar-works)
 
-Find works similar to a given text using AI-powered semantic search. This uses the `/find/works` endpoint which searches by meaning rather than exact keyword matches.
+Find works similar to a given text using AI-powered semantic search. This uses the `search.semantic` parameter which searches by meaning rather than exact keyword matches.
 
 ```python
-Works().query("machine learning for drug discovery").get()
+Works().similar("machine learning for drug discovery").get()
 ```
 
 Semantic search can be combined with filters and other operations using the pipe syntax:
 
 ```python
 Works() \
-  .query("climate change impacts on biodiversity") \
+  .similar("climate change impacts on biodiversity") \
   .filter(publication_year=">2020", is_oa=True) \
   .get(per_page=50)
 ```
 
 **Important notes:**
-- Semantic search requires an API key
-- Each query consumes 1,000 credits (see [Rate limits](#rate-limits-and-authentication))
 - Only works with abstracts are searchable (~217 million works)
-- Query text is limited to 10,000 characters
-- For queries longer than 2,000 characters, PyAlex automatically uses POST requests
-- Cannot be combined with `search()` - use either semantic search with `query()` or keyword search with `search()`, not both
+- Can be combined with filters and other query parameters
 
 Example with count:
 ```python
-count = Works().query("quantum computing applications").count()
+count = Works().similar("quantum computing applications").count()
 ```
 
 

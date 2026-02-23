@@ -439,6 +439,12 @@ class BaseOpenAlex:
                 "Object has no attribute 'filter_search'. Did you mean 'search_filter'?"
             )
 
+        if key == "query":
+            raise AttributeError(
+                "Object has no attribute 'query'. "
+                "Use Works().similar() to find similar works."
+            )
+
         raise AttributeError(
             f"'{self.__class__.__name__}' object has no attribute '{key}'"
         )
@@ -493,10 +499,6 @@ class BaseOpenAlex:
         """
         base_path = self.__class__.__name__.lower()
 
-        # Use /find endpoint for semantic search queries
-        if hasattr(self, "_use_find_endpoint") and self._use_find_endpoint:
-            base_path = f"find/{base_path}"
-
         if isinstance(self.params, str):
             path = f"{base_path}/{_quote_oa_value(self.params)}"
             query = ""
@@ -516,18 +518,13 @@ class BaseOpenAlex:
         """
         return self.get(per_page=1).meta["count"]
 
-    def _get_from_url(self, url, session=None, method="GET", json_data=None):
+    def _get_from_url(self, url, session=None):
         if session is None:
             session = _get_requests_session()
 
-        logger.debug(f"{method} request to URL: {url}")
+        logger.debug(f"GET request to URL: {url}")
 
-        if method == "GET":
-            res = session.get(url, auth=OpenAlexAuth(config))
-        elif method == "POST":
-            res = session.post(url, json=json_data, auth=OpenAlexAuth(config))
-        else:
-            raise ValueError(f"Unsupported HTTP method: {method}")
+        res = session.get(url, auth=OpenAlexAuth(config))
 
         if res.status_code == 400:
             if (
@@ -567,34 +564,7 @@ class BaseOpenAlex:
             self._add_params("page", page)
             self._add_params("cursor", cursor)
 
-        # Determine if we need POST for long query
-        method = "GET"
-        json_data = None
-        url = self.url
-
-        if (
-            hasattr(self, "_use_find_endpoint")
-            and self._use_find_endpoint
-            and isinstance(self.params, dict)
-            and "query" in self.params
-        ):
-            query_text = self.params["query"]
-            query_length = len(query_text)
-
-            # Validate query length
-            if query_length > 10000:
-                raise ValueError(
-                    f"Query text cannot exceed 10,000 characters. "
-                    f"Current length: {query_length}"
-                )
-
-            # Use POST for long queries
-            if query_length > 2000:
-                method = "POST"
-                json_data = {"query": query_text}
-                url = self._build_url_for_post()
-
-        resp_list = self._get_from_url(url, method=method, json_data=json_data)
+        resp_list = self._get_from_url(self.url)
 
         if return_meta:
             warnings.warn(
@@ -673,31 +643,6 @@ class BaseOpenAlex:
             self.params[argument] = new_params
 
         logger.debug(f"Params updated: {self.params}")
-
-    def _build_url_for_post(self):
-        """Build URL for POST request excluding query parameter.
-
-        Returns
-        -------
-        str
-            URL for POST request with query excluded from parameters.
-        """
-        base_path = self.__class__.__name__.lower()
-
-        if hasattr(self, "_use_find_endpoint") and self._use_find_endpoint:
-            base_path = f"find/{base_path}"
-
-        # Build params excluding 'query' (goes in POST body)
-        if isinstance(self.params, dict):
-            params_copy = {k: v for k, v in self.params.items() if k != "query"}
-            original_params = self.params
-            self.params = params_copy
-            query_str = self._url_query()
-            self.params = original_params
-        else:
-            query_str = self._url_query()
-
-        return urlunparse(("https", "api.openalex.org", base_path, "", query_str, ""))
 
     def filter(self, **kwargs):
         """Add filter parameters to the API request.
@@ -856,34 +801,6 @@ class BaseOpenAlex:
             Updated object.
         """
         self._add_params("search", s)
-        return self
-
-    def query(self, text):
-        """Find similar works using semantic search.
-
-        Uses the /find/works endpoint for AI-powered semantic search.
-        Automatically uses POST for long queries (>2000 chars).
-
-        Parameters
-        ----------
-        text : str
-            Query text to find similar works (max 10,000 characters).
-
-        Returns
-        -------
-        BaseOpenAlex
-            Updated object.
-        """
-        # Prevent combining with keyword search
-        if isinstance(self.params, dict) and "search" in self.params:
-            raise ValueError(
-                "Cannot use both query() and search(). "
-                "query() uses semantic search (/find/works), "
-                "search() uses keyword search."
-            )
-
-        self._use_find_endpoint = True
-        self._add_params("query", text)
         return self
 
     def sample(self, n, seed=None):
@@ -1113,6 +1030,24 @@ class Works(BaseOpenAlex):
     """Class representing a collection of work entities in OpenAlex."""
 
     resource_class = Work
+
+    def similar(self, text):
+        """Find similar works using semantic search.
+
+        Uses the search.semantic parameter for AI-powered semantic search.
+
+        Parameters
+        ----------
+        text : str
+            Query text to find similar works.
+
+        Returns
+        -------
+        Works
+            Updated object.
+        """
+        self._add_params("search.semantic", text)
+        return self
 
 
 class Author(OpenAlexEntity):
