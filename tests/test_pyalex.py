@@ -575,3 +575,45 @@ def test_work_pdf_and_tei_download(tmpdir):
     work.tei.download(str(tei_path))
     assert tei_path.exists()
     assert tei_path.stat().st_size > 0
+
+
+# Tests for similar() functionality
+
+
+def test_similar_url():
+    """Test URL construction with similar()."""
+    url = Works().similar("machine learning").url
+    assert "works" in url
+    assert "search.semantic=machine" in url
+
+
+@requires_api_key(reason="OpenAlex requires authentication for semantic search queries")
+def test_similar_short():
+    """Test basic similar() with short text."""
+    w = Works().similar("machine learning").get()
+    assert len(w) >= 0
+    assert w.meta.get("count") is not None
+
+
+@requires_api_key(reason="OpenAlex requires authentication for semantic search queries")
+def test_similar_with_filter():
+    """Test similar() with filters."""
+    w = Works().similar("climate change").filter(publication_year=2023).get()
+    assert len(w) >= 0
+    # All results should be from 2023 if there are results
+    if len(w) > 0:
+        assert all(work.get("publication_year") == 2023 for work in w)
+
+
+@requires_api_key(reason="OpenAlex requires authentication for semantic search queries")
+def test_similar_count():
+    """Test count() with similar()."""
+    count = Works().similar("artificial intelligence").count()
+    assert count >= 0
+
+
+@requires_api_key(reason="OpenAlex requires authentication for semantic search queries")
+def test_similar_per_page():
+    """Test similar() with per_page parameter."""
+    w = Works().similar("deep learning").get(per_page=10)
+    assert len(w) <= 10
