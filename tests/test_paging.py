@@ -60,6 +60,7 @@ def test_cursor():
         results.extend(r)
 
         # set the next cursor
+        assert r.meta is not None
         next_cursor = r.meta["next_cursor"]
 
     assert len(results) > 200
@@ -82,6 +83,7 @@ def test_page():
 
         # results
         results.extend(r)
+        assert r.meta is not None
         page = None if len(r) == 0 else r.meta["page"] + 1
 
     assert len(results) > 200
@@ -108,6 +110,7 @@ def test_paginate_counts():
     )
     n_p_page = sum(len(page) for page in p_page)
 
+    assert r.meta is not None
     assert r.meta["count"] == n_p_page >= n_p_default == n_p_cursor
 
 

@@ -97,6 +97,7 @@ def test_meta_entities(entity):
 @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
 def test_meta_entities_deprecated():
     r = Concepts().get()
+    assert r.meta is not None
     assert r.meta.get("count", False)
 
 
@@ -202,6 +203,8 @@ def test_works_multifilter():
     #     .filter(publication_year=2020, open_access={"is_oa": True})
     #     .get()
     # )
+    assert r1.meta is not None
+    assert r2.meta is not None
 
     assert r["meta"]["count"] == r1.meta["count"]
     assert r["meta"]["count"] == r2.meta["count"]
@@ -223,6 +226,8 @@ def test_works_multifilter_meta():
     r1 = Works().filter(publication_year=2020, is_oa=True).get()
     r2 = Works().filter(publication_year=2020).filter(is_oa=True).get()
 
+    assert r1.meta is not None
+    assert r2.meta is not None
     assert r1.meta["count"] == r2.meta["count"]
 
 
@@ -277,6 +282,7 @@ def test_referenced_works():
 
     r = Works().filter_or(openalex_id=w["referenced_works"]).get()
 
+    assert r.meta is not None
     assert r.meta["count"] <= len(w["referenced_works"])
 
 
