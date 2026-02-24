@@ -1143,7 +1143,7 @@ class Works(BaseOpenAlex[Work]):
 
     resource_class = Work
 
-    def similar(self, text):
+    def similar(self, text) -> "Works":
         """Find similar works using semantic search.
 
         Uses the search.semantic parameter for AI-powered semantic search.
