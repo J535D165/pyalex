@@ -488,7 +488,7 @@ class BaseOpenAlex:
     def url(self):
         """Return the URL for the API request.
 
-        The URL doens't include the identification, authentication,
+        The URL doesn't include the identification, authentication,
         and pagination parameters.
 
 

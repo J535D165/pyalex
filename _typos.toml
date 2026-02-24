@@ -1,0 +1,16 @@
+[default]
+extend-ignore-identifiers-re = [
+    "AttributeID.*Supress.*",
+]
+
+[default.extend-identifiers]
+AttributeIDSupressMenu = "AttributeIDSupressMenu"
+
+[default.extend-words]
+# words that should not be corrected
+
+[files]
+extend-exclude = [
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    "./.github/ISSUE_TEMPLATE/*.md"]
