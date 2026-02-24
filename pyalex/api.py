@@ -273,7 +273,7 @@ def _get_requests_session() -> requests.Session:
         total=config.max_retries,
         backoff_factor=config.retry_backoff_factor,
         status_forcelist=config.retry_http_codes,
-        allowed_methods={"GET"},
+        allowed_methods={"GET", "POST"},
     )
     requests_session.mount(
         "https://", requests.adapters.HTTPAdapter(max_retries=retries)
@@ -520,6 +520,12 @@ class BaseOpenAlex(Generic[T]):
                 "Object has no attribute 'filter_search'. Did you mean 'search_filter'?"
             )
 
+        if key == "query":
+            raise AttributeError(
+                "Object has no attribute 'query'. "
+                "Use Works().similar() to find similar works."
+            )
+
         raise AttributeError(
             f"'{self.__class__.__name__}' object has no attribute '{key}'"
         )
@@ -608,7 +614,7 @@ class BaseOpenAlex(Generic[T]):
         if session is None:
             session = _get_requests_session()
 
-        logger.debug(f"Requesting URL: {url}")
+        logger.debug(f"GET request to URL: {url}")
 
         res = session.get(url, auth=OpenAlexAuth(config))
 
@@ -1136,6 +1142,24 @@ class Works(BaseOpenAlex[Work]):
     """Class representing a collection of work entities in OpenAlex."""
 
     resource_class = Work
+
+    def similar(self, text):
+        """Find similar works using semantic search.
+
+        Uses the search.semantic parameter for AI-powered semantic search.
+
+        Parameters
+        ----------
+        text : str
+            Query text to find similar works.
+
+        Returns
+        -------
+        Works
+            Updated object.
+        """
+        self._add_params("search.semantic", text)
+        return self
 
 
 class Author(OpenAlexEntity):
