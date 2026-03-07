@@ -587,14 +587,10 @@ class BaseOpenAlex:
 
         if self.params and "group-by" in self.params:
             meta = {**res_json["meta"], "ratelimit": ratelimit}
-            return OpenAlexResponseList(
-                res_json["group_by"], meta, self.resource_class
-            )
+            return OpenAlexResponseList(res_json["group_by"], meta, self.resource_class)
         elif "results" in res_json:
             meta = {**res_json["meta"], "ratelimit": ratelimit}
-            return OpenAlexResponseList(
-                res_json["results"], meta, self.resource_class
-            )
+            return OpenAlexResponseList(res_json["results"], meta, self.resource_class)
         elif "id" in res_json:
             result = self.resource_class(res_json)
             result.meta = {"ratelimit": ratelimit}
