@@ -226,6 +226,50 @@ def _get_requests_session():
     return requests_session
 
 
+_RATELIMIT_INT_HEADERS = {
+    "credits_used": "X-RateLimit-Credits-Used",
+    "credits_required": "X-RateLimit-Credits-Required",
+    "credits_limit": "X-RateLimit-Limit",
+    "credits_remaining": "X-RateLimit-Remaining",
+    "onetime_remaining": "X-RateLimit-Onetime-Remaining",
+    "reset_seconds": "X-RateLimit-Reset",
+}
+
+_RATELIMIT_FLOAT_HEADERS = {
+    "cost_usd": "X-RateLimit-Cost-USD",
+    "cost_required_usd": "X-RateLimit-Cost-Required-USD",
+    "limit_usd": "X-RateLimit-Limit-USD",
+    "remaining_usd": "X-RateLimit-Remaining-USD",
+    "prepaid_remaining_usd": "X-RateLimit-Prepaid-Remaining-USD",
+}
+
+
+def _extract_ratelimit(res):
+    """Extract rate-limit and credit info from response headers.
+
+    Parameters
+    ----------
+    res : requests.Response
+        HTTP response from the OpenAlex API.
+
+    Returns
+    -------
+    dict
+        Rate-limit information. Keys are omitted if the
+        corresponding header is absent.
+    """
+    ratelimit = {}
+    for key, header in _RATELIMIT_INT_HEADERS.items():
+        value = res.headers.get(header)
+        if value is not None:
+            ratelimit[key] = int(value)
+    for key, header in _RATELIMIT_FLOAT_HEADERS.items():
+        value = res.headers.get(header)
+        if value is not None:
+            ratelimit[key] = float(value)
+    return ratelimit
+
+
 def invert_abstract(inv_index):
     """Invert OpenAlex abstract index.
 
@@ -539,17 +583,22 @@ class BaseOpenAlex:
 
         res.raise_for_status()
         res_json = res.json()
+        ratelimit = _extract_ratelimit(res)
 
         if self.params and "group-by" in self.params:
+            meta = {**res_json["meta"], "ratelimit": ratelimit}
             return OpenAlexResponseList(
-                res_json["group_by"], res_json["meta"], self.resource_class
+                res_json["group_by"], meta, self.resource_class
             )
         elif "results" in res_json:
+            meta = {**res_json["meta"], "ratelimit": ratelimit}
             return OpenAlexResponseList(
-                res_json["results"], res_json["meta"], self.resource_class
+                res_json["results"], meta, self.resource_class
             )
         elif "id" in res_json:
-            return self.resource_class(res_json)
+            result = self.resource_class(res_json)
+            result.meta = {"ratelimit": ratelimit}
+            return result
         else:
             raise ValueError("Unknown response format")
 
