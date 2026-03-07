@@ -84,8 +84,10 @@ The OpenAlex API uses a credit-based rate limiting system. Different endpoint ty
 
 - **Without API key**: 100 credits per day (testing/demos only)
 - **With free API key**: 100,000 credits per day
-- **Singleton requests** (e.g., `/works/W123`): Free (0 credits)
-- **List requests** (e.g., `/works?filter=...`): 1 credit each
+- **Singleton by OpenAlex ID** (e.g., `/works/W123`): Free (0 credits)
+- **Singleton by external ID** (e.g., DOI, ORCID, ROR): 1 credit
+- **List/filter requests** (e.g., `/works?filter=...`): 1 credit each
+- **Search requests** (e.g., `/works?search=...`): 10 credits each
 
 All users are limited to a maximum of 100 requests per second.
 
@@ -103,6 +105,41 @@ pyalex.config.api_key = "<YOUR_API_KEY>"
 
 For more information, see the [OpenAlex Rate limits and authentication documentation](https://docs.openalex.org/how-to-use-the-api/rate-limits-and-authentication).
 
+#### Monitor usage
+
+Every API response includes rate-limit and credit information in `meta["ratelimit"]`. This works for both list results and singleton lookups:
+
+```python
+from pyalex import Works
+
+# List results
+results = Works().filter(publication_year=2020).get()
+print(results.meta["ratelimit"])
+# {'credits_used': 1, 'credits_remaining': 9999, 'cost_usd': 0.0001, ...}
+
+# Singleton results
+work = Works()["W2741809807"]
+print(work.meta["ratelimit"])
+# {'credits_used': 0, 'credits_remaining': 9999, ...}
+```
+
+Available fields in `meta["ratelimit"]`:
+
+| Key | Type | Description |
+|---|---|---|
+| `credits_used` | int | Credits consumed by this request |
+| `credits_required` | int | Credits required for this request type |
+| `credits_limit` | int | Total daily credit allowance |
+| `credits_remaining` | int | Credits remaining today |
+| `onetime_remaining` | int | One-time bonus credits remaining |
+| `reset_seconds` | int | Seconds until daily credits reset |
+| `cost_usd` | float | USD cost of this request |
+| `cost_required_usd` | float | USD cost required for this request type |
+| `limit_usd` | float | Total daily USD allowance |
+| `remaining_usd` | float | USD remaining today |
+| `prepaid_remaining_usd` | float | Prepaid USD balance remaining |
+
+Fields are omitted from the dict if the corresponding header is absent from the response.
 
 ### Get single entity
 
@@ -116,7 +153,7 @@ Works()["W2741809807"]
 Works()["https://doi.org/10.7717/peerj.4375"]
 ```
 
-The result is a `Work` object, which is very similar to a dictionary. Find the available fields with `.keys()`.
+The result is a `Work` object, which is very similar to a dictionary. Find the available fields with `.keys()`. Singleton results also have a `.meta` attribute containing rate-limit information (see [Monitor usage](#monitor-usage)).
 
 For example, get the open access status:
 
@@ -243,8 +280,10 @@ topics = Topics().get()
 
 ```python
 print(topics.meta)
-{'count': 65073, 'db_response_time_ms': 16, 'page': 1, 'per_page': 25}
+{'count': 65073, 'db_response_time_ms': 16, 'page': 1, 'per_page': 25, 'groups_count': None, 'cost_usd': 0.0001, 'ratelimit': {'credits_used': 1, 'credits_remaining': 9999, ...}}
 ```
+
+The `ratelimit` key contains per-request credit and cost information extracted from the response headers. See [Monitor usage](#monitor-usage) for details.
 
 #### Filter records
 
