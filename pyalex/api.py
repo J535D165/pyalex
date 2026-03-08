@@ -1,4 +1,5 @@
 import logging
+import time
 import warnings
 from urllib.parse import quote_plus
 from urllib.parse import urlunparse
@@ -50,14 +51,12 @@ config = AlexConfig(
     openalex_url="https://api.openalex.org",
     max_retries=0,
     retry_backoff_factor=0.1,
-    retry_http_codes=[429, 500, 503],
+    retry_http_codes=[500, 503],
 )
 
 
 class or_(dict):
     """Logical OR expression class."""
-
-    pass
 
 
 class _LogicalExpression:
@@ -153,17 +152,14 @@ def _flatten_kv(d, prefix=None, logical="+"):
 
         t = []
         for k, v in d.items():
-            x = _flatten_kv(
-                v, prefix=f"{prefix}.{k}" if prefix else f"{k}", logical=logical_subd
-            )
+            x = _flatten_kv(v, prefix=f"{prefix}.{k}" if prefix else f"{k}", logical=logical_subd)
             t.append(x)
 
         return ",".join(t)
-    elif isinstance(d, list):
+    if isinstance(d, list):
         list_str = logical.join([f"{_quote_oa_value(i)}" for i in d])
         return f"{prefix}:{list_str}"
-    else:
-        return f"{prefix}:{_quote_oa_value(d)}"
+    return f"{prefix}:{_quote_oa_value(d)}"
 
 
 def _params_merge(params, add_params):
@@ -177,24 +173,12 @@ def _params_merge(params, add_params):
         Additional parameters to be merged.
     """
     for k in add_params.keys():
-        if (
-            k in params
-            and isinstance(params[k], dict)
-            and isinstance(add_params[k], dict)
-        ):
+        if k in params and isinstance(params[k], dict) and isinstance(add_params[k], dict):
             _params_merge(params[k], add_params[k])
-        elif (
-            k in params
-            and not isinstance(params[k], list)
-            and isinstance(add_params[k], list)
-        ):
+        elif k in params and not isinstance(params[k], list) and isinstance(add_params[k], list):
             # example: params="a" and add_params=["b", "c"]
             params[k] = [params[k]] + add_params[k]
-        elif (
-            k in params
-            and isinstance(params[k], list)
-            and not isinstance(add_params[k], list)
-        ):
+        elif k in params and isinstance(params[k], list) and not isinstance(add_params[k], list):
             # example: params=["b", "c"] and add_params="a"
             params[k] = params[k] + [add_params[k]]
         elif k in params:
@@ -219,11 +203,74 @@ def _get_requests_session():
         status_forcelist=config.retry_http_codes,
         allowed_methods={"GET", "POST"},
     )
-    requests_session.mount(
-        "https://", requests.adapters.HTTPAdapter(max_retries=retries)
-    )
+    requests_session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retries))
 
     return requests_session
+
+
+_RATELIMIT_INT_HEADERS = {
+    "credits_used": "X-RateLimit-Credits-Used",
+    "credits_required": "X-RateLimit-Credits-Required",
+    "credits_limit": "X-RateLimit-Limit",
+    "credits_remaining": "X-RateLimit-Remaining",
+    "onetime_remaining": "X-RateLimit-Onetime-Remaining",
+    "reset_seconds": "X-RateLimit-Reset",
+}
+
+_RATELIMIT_FLOAT_HEADERS = {
+    "cost_usd": "X-RateLimit-Cost-USD",
+    "cost_required_usd": "X-RateLimit-Cost-Required-USD",
+    "limit_usd": "X-RateLimit-Limit-USD",
+    "remaining_usd": "X-RateLimit-Remaining-USD",
+    "prepaid_remaining_usd": "X-RateLimit-Prepaid-Remaining-USD",
+}
+
+
+def _extract_ratelimit(res):
+    """Extract rate-limit and credit info from response headers.
+
+    Parameters
+    ----------
+    res : requests.Response
+        HTTP response from the OpenAlex API.
+
+    Returns
+    -------
+    dict
+        Rate-limit information with native types. Keys are omitted
+        if the corresponding header is absent.
+    """
+    ratelimit = {}
+    for key, header in _RATELIMIT_INT_HEADERS.items():
+        value = res.headers.get(header)
+        if value is not None:
+            ratelimit[key] = int(value)
+    for key, header in _RATELIMIT_FLOAT_HEADERS.items():
+        value = res.headers.get(header)
+        if value is not None:
+            ratelimit[key] = float(value)
+    return ratelimit
+
+
+def _handle_429(res):
+    """Handle a 429 response by checking Retry-After and credit exhaustion.
+
+    Raises CreditsExhaustedError if credits are spent. Otherwise respects
+    the Retry-After header and retries once, raising HTTPError if the
+    retry also fails.
+    """
+    remaining = int(res.headers.get("X-RateLimit-Remaining", 0))
+    required = int(res.headers.get("X-RateLimit-Credits-Required", 1))
+    if remaining < required:
+        raise CreditsExhaustedError(
+            f"Insufficient credits: {remaining} remaining, {required} required. Credits reset daily at midnight UTC."
+        )
+
+    retry_after = res.headers.get("Retry-After")
+    wait = float(retry_after) if retry_after is not None else 1.0
+
+    logger.info("Rate limited (429). Waiting %.1fs before retry.", wait)
+    time.sleep(wait)
 
 
 def invert_abstract(inv_index):
@@ -273,13 +320,13 @@ def _wrap_values_nested_dict(d, func):
 class QueryError(ValueError):
     """Exception raised for errors in the query."""
 
-    pass
+
+class CreditsExhaustedError(Exception):
+    """Raised when the API key has insufficient credits remaining."""
 
 
 class OpenAlexEntity(dict):
     """Base class for OpenAlex entities."""
-
-    pass
 
 
 class OpenAlexResponseList(list):
@@ -332,9 +379,7 @@ class Paginator:
     VALUE_CURSOR_START = "*"
     VALUE_NUMBER_START = 1
 
-    def __init__(
-        self, endpoint_class, method="cursor", value=None, per_page=None, n_max=None
-    ):
+    def __init__(self, endpoint_class, method="cursor", value=None, per_page=None, n_max=None):
         self.method = method
         self.endpoint_class = endpoint_class
         self.value = value
@@ -365,8 +410,7 @@ class Paginator:
             raise ValueError("Method should be 'cursor' or 'page'")
 
         if self.per_page is not None and (
-            not isinstance(self.per_page, int)
-            or (self.per_page < 1 or self.per_page > 200)
+            not isinstance(self.per_page, int) or (self.per_page < 1 or self.per_page > 200)
         ):
             raise ValueError("per_page should be a integer between 1 and 200")
 
@@ -430,24 +474,15 @@ class BaseOpenAlex:
 
     def __getattr__(self, key):
         if key == "groupby":
-            raise AttributeError(
-                "Object has no attribute 'groupby'. Did you mean 'group_by'?"
-            )
+            raise AttributeError("Object has no attribute 'groupby'. Did you mean 'group_by'?")
 
         if key == "filter_search":
-            raise AttributeError(
-                "Object has no attribute 'filter_search'. Did you mean 'search_filter'?"
-            )
+            raise AttributeError("Object has no attribute 'filter_search'. Did you mean 'search_filter'?")
 
         if key == "query":
-            raise AttributeError(
-                "Object has no attribute 'query'. "
-                "Use Works().similar() to find similar works."
-            )
+            raise AttributeError("Object has no attribute 'query'. Use Works().similar() to find similar works.")
 
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{key}'"
-        )
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{key}'")
 
     def __getitem__(self, record_id):
         if isinstance(record_id, list):
@@ -455,24 +490,21 @@ class BaseOpenAlex:
                 raise ValueError("OpenAlex does not support more than 100 ids")
 
             return self.filter_or(openalex_id=record_id).get(per_page=len(record_id))
-        elif isinstance(record_id, str):
+        if isinstance(record_id, str):
             self.params = record_id
             return self._get_from_url(self.url)
-        else:
-            raise ValueError("record_id should be a string or a list of strings")
+        raise ValueError("record_id should be a string or a list of strings")
 
     def _url_query(self):
         if isinstance(self.params, list):
             return self.filter_or(openalex_id=self.params)
-        elif isinstance(self.params, dict):
+        if isinstance(self.params, dict):
             l_params = []
             for k, v in self.params.items():
                 if v is None:
                     pass
                 elif isinstance(v, list):
-                    l_params.append(
-                        "{}={}".format(k, ",".join(map(_quote_oa_value, v)))
-                    )
+                    l_params.append("{}={}".format(k, ",".join(map(_quote_oa_value, v))))
                 elif k in ["filter", "sort"]:
                     l_params.append(f"{k}={_flatten_kv(v)}")
                 else:
@@ -526,37 +558,36 @@ class BaseOpenAlex:
 
         res = session.get(url, auth=OpenAlexAuth(config))
 
+        if res.status_code == 429:
+            _handle_429(res)
+            res = session.get(url, auth=OpenAlexAuth(config))
+            if res.status_code == 429:
+                _handle_429(res)
+
         if res.status_code == 400:
-            if (
-                isinstance(res.json()["error"], str)
-                and "query parameters" in res.json()["error"]
-            ):
+            if isinstance(res.json()["error"], str) and "query parameters" in res.json()["error"]:
                 raise QueryError(res.json()["message"])
         if res.status_code == 401 and "API key" in res.json()["error"]:
-            raise QueryError(
-                f"{res.json()['error']}. Did you configure a valid API key?"
-            )
+            raise QueryError(f"{res.json()['error']}. Did you configure a valid API key?")
 
         res.raise_for_status()
         res_json = res.json()
+        ratelimit = _extract_ratelimit(res)
 
         if self.params and "group-by" in self.params:
-            return OpenAlexResponseList(
-                res_json["group_by"], res_json["meta"], self.resource_class
-            )
-        elif "results" in res_json:
-            return OpenAlexResponseList(
-                res_json["results"], res_json["meta"], self.resource_class
-            )
-        elif "id" in res_json:
-            return self.resource_class(res_json)
-        else:
-            raise ValueError("Unknown response format")
+            meta = {**res_json["meta"], "ratelimit": ratelimit}
+            return OpenAlexResponseList(res_json["group_by"], meta, self.resource_class)
+        if "results" in res_json:
+            meta = {**res_json["meta"], "ratelimit": ratelimit}
+            return OpenAlexResponseList(res_json["results"], meta, self.resource_class)
+        if "id" in res_json:
+            result = self.resource_class(res_json)
+            result.meta = {"ratelimit": ratelimit}
+            return result
+        raise ValueError("Unknown response format")
 
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
-        if per_page is not None and (
-            not isinstance(per_page, int) or (per_page < 1 or per_page > 200)
-        ):
+        if per_page is not None and (not isinstance(per_page, int) or (per_page < 1 or per_page > 200)):
             raise ValueError("per_page should be an integer between 1 and 200")
 
         if not isinstance(self.params, (str, list)):
@@ -573,8 +604,7 @@ class BaseOpenAlex:
                 stacklevel=2,
             )
             return resp_list, resp_list.meta
-        else:
-            return resp_list
+        return resp_list
 
     def paginate(self, method="cursor", page=1, per_page=None, cursor="*", n_max=10000):
         """Paginate results from the API.
@@ -606,9 +636,7 @@ class BaseOpenAlex:
         else:
             raise ValueError("Method should be 'cursor' or 'page'")
 
-        return Paginator(
-            self, method=method, value=value, per_page=per_page, n_max=n_max
-        )
+        return Paginator(self, method=method, value=value, per_page=per_page, n_max=n_max)
 
     def random(self):
         """Get a random result.
@@ -876,8 +904,7 @@ class BaseOpenAlex:
                 stacklevel=2,
             )
             return resp_list, resp_list.meta
-        else:
-            return resp_list
+        return resp_list
 
 
 class BaseContent:
@@ -901,18 +928,38 @@ class BaseContent:
         return f"https://content.openalex.org/works/{self.key}"
 
     def get(self):
-        """Get the content
+        """Get the content via two-step redirect.
+
+        The content API returns a 302 redirect to a signed CDN URL.
+        We follow this manually to capture rate-limit headers from
+        the initial response (the CDN response has no such headers).
+        After calling this method, ``self.meta`` contains rate-limit
+        information.
 
         Returns
         -------
         bytes
             Content of the request.
         """
-        content_url = f"https://content.openalex.org/works/{self.key}"
+        session = _get_requests_session()
+        res = session.get(self.url, auth=OpenAlexAuth(config), allow_redirects=False)
 
-        res = _get_requests_session().get(
-            content_url, auth=OpenAlexAuth(config), allow_redirects=True
-        )
+        if res.status_code == 429:
+            _handle_429(res)
+            res = session.get(self.url, auth=OpenAlexAuth(config), allow_redirects=False)
+            if res.status_code == 429:
+                _handle_429(res)
+
+        self.meta = {"ratelimit": _extract_ratelimit(res)}
+
+        if res.status_code in (301, 302, 307, 308):
+            redirect_url = res.headers.get("Location")
+            if redirect_url is None:
+                raise ValueError("Content API returned redirect with no Location header")
+            content_res = session.get(redirect_url)
+            content_res.raise_for_status()
+            return content_res.content
+
         res.raise_for_status()
         return res.content
 
@@ -1000,8 +1047,7 @@ class Work(OpenAlexEntity):
                 stacklevel=2,
             )
             return resp_list, resp_list.meta
-        else:
-            return resp_list
+        return resp_list
 
     @property
     def pdf(self):
@@ -1053,8 +1099,6 @@ class Works(BaseOpenAlex):
 class Author(OpenAlexEntity):
     """Class representing an author entity in OpenAlex."""
 
-    pass
-
 
 class Authors(BaseOpenAlex):
     """Class representing a collection of author entities in OpenAlex."""
@@ -1064,8 +1108,6 @@ class Authors(BaseOpenAlex):
 
 class Source(OpenAlexEntity):
     """Class representing a source entity in OpenAlex."""
-
-    pass
 
 
 class Sources(BaseOpenAlex):
@@ -1077,8 +1119,6 @@ class Sources(BaseOpenAlex):
 class Institution(OpenAlexEntity):
     """Class representing an institution entity in OpenAlex."""
 
-    pass
-
 
 class Institutions(BaseOpenAlex):
     """Class representing a collection of institution entities in OpenAlex."""
@@ -1088,8 +1128,6 @@ class Institutions(BaseOpenAlex):
 
 class Domain(OpenAlexEntity):
     """Class representing a domain entity in OpenAlex."""
-
-    pass
 
 
 class Domains(BaseOpenAlex):
@@ -1101,8 +1139,6 @@ class Domains(BaseOpenAlex):
 class Field(OpenAlexEntity):
     """Class representing a field entity in OpenAlex."""
 
-    pass
-
 
 class Fields(BaseOpenAlex):
     """Class representing a collection of field entities in OpenAlex."""
@@ -1112,8 +1148,6 @@ class Fields(BaseOpenAlex):
 
 class Subfield(OpenAlexEntity):
     """Class representing a subfield entity in OpenAlex."""
-
-    pass
 
 
 class Subfields(BaseOpenAlex):
@@ -1125,8 +1159,6 @@ class Subfields(BaseOpenAlex):
 class Topic(OpenAlexEntity):
     """Class representing a topic entity in OpenAlex."""
 
-    pass
-
 
 class Topics(BaseOpenAlex):
     """Class representing a collection of topic entities in OpenAlex."""
@@ -1136,8 +1168,6 @@ class Topics(BaseOpenAlex):
 
 class Publisher(OpenAlexEntity):
     """Class representing a publisher entity in OpenAlex."""
-
-    pass
 
 
 class Publishers(BaseOpenAlex):
@@ -1149,8 +1179,6 @@ class Publishers(BaseOpenAlex):
 class Funder(OpenAlexEntity):
     """Class representing a funder entity in OpenAlex."""
 
-    pass
-
 
 class Funders(BaseOpenAlex):
     """Class representing a collection of funder entities in OpenAlex."""
@@ -1160,8 +1188,6 @@ class Funders(BaseOpenAlex):
 
 class Award(OpenAlexEntity):
     """Class representing an award entity in OpenAlex."""
-
-    pass
 
 
 class Awards(BaseOpenAlex):
@@ -1173,8 +1199,6 @@ class Awards(BaseOpenAlex):
 class Keyword(OpenAlexEntity):
     """Class representing a keyword entity in OpenAlex."""
 
-    pass
-
 
 class Keywords(BaseOpenAlex):
     """Class representing a collection of keyword entities in OpenAlex."""
@@ -1184,8 +1208,6 @@ class Keywords(BaseOpenAlex):
 
 class Autocomplete(OpenAlexEntity):
     """Class representing an autocomplete entity in OpenAlex."""
-
-    pass
 
 
 class autocompletes(BaseOpenAlex):
