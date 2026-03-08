@@ -11,6 +11,7 @@ from pyalex.api import Award
 from pyalex.api import Awards
 from pyalex.api import Concept
 from pyalex.api import Concepts
+from pyalex.api import CreditsExhaustedError
 from pyalex.api import Domain
 from pyalex.api import Domains
 from pyalex.api import Field
@@ -39,36 +40,37 @@ from pyalex.api import config
 from pyalex.api import invert_abstract
 
 __all__ = [
+    "Author",
+    "Authors",
     "Award",
     "Awards",
-    "Works",
-    "Work",
-    "Authors",
-    "Author",
-    "Sources",
-    "Source",
+    "Concept",
+    "Concepts",
+    "CreditsExhaustedError",
+    "Domain",
+    "Domains",
+    "Field",
+    "Fields",
     "Funder",
     "Funders",
-    "Publishers",
-    "Publisher",
-    "Institutions",
     "Institution",
-    "Concepts",
-    "Concept",
-    "Domains",
-    "Domain",
-    "Fields",
-    "Field",
-    "Subfields",
-    "Subfield",
-    "Topics",
-    "Topic",
-    "Keywords",
-    "Keyword",
-    "People",
+    "Institutions",
     "Journals",
+    "Keyword",
+    "Keywords",
+    "OpenAlexResponseList",
+    "People",
+    "Publisher",
+    "Publishers",
+    "Source",
+    "Sources",
+    "Subfield",
+    "Subfields",
+    "Topic",
+    "Topics",
+    "Work",
+    "Works",
     "autocomplete",
     "config",
     "invert_abstract",
-    "OpenAlexResponseList",
 ]
