@@ -152,7 +152,9 @@ def _flatten_kv(d, prefix=None, logical="+"):
 
         t = []
         for k, v in d.items():
-            x = _flatten_kv(v, prefix=f"{prefix}.{k}" if prefix else f"{k}", logical=logical_subd)
+            x = _flatten_kv(
+                v, prefix=f"{prefix}.{k}" if prefix else f"{k}", logical=logical_subd
+            )
             t.append(x)
 
         return ",".join(t)
@@ -173,12 +175,24 @@ def _params_merge(params, add_params):
         Additional parameters to be merged.
     """
     for k in add_params.keys():
-        if k in params and isinstance(params[k], dict) and isinstance(add_params[k], dict):
+        if (
+            k in params
+            and isinstance(params[k], dict)
+            and isinstance(add_params[k], dict)
+        ):
             _params_merge(params[k], add_params[k])
-        elif k in params and not isinstance(params[k], list) and isinstance(add_params[k], list):
+        elif (
+            k in params
+            and not isinstance(params[k], list)
+            and isinstance(add_params[k], list)
+        ):
             # example: params="a" and add_params=["b", "c"]
             params[k] = [params[k]] + add_params[k]
-        elif k in params and isinstance(params[k], list) and not isinstance(add_params[k], list):
+        elif (
+            k in params
+            and isinstance(params[k], list)
+            and not isinstance(add_params[k], list)
+        ):
             # example: params=["b", "c"] and add_params="a"
             params[k] = params[k] + [add_params[k]]
         elif k in params:
@@ -203,7 +217,9 @@ def _get_requests_session():
         status_forcelist=config.retry_http_codes,
         allowed_methods={"GET", "POST"},
     )
-    requests_session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retries))
+    requests_session.mount(
+        "https://", requests.adapters.HTTPAdapter(max_retries=retries)
+    )
 
     return requests_session
 
@@ -379,7 +395,9 @@ class Paginator:
     VALUE_CURSOR_START = "*"
     VALUE_NUMBER_START = 1
 
-    def __init__(self, endpoint_class, method="cursor", value=None, per_page=None, n_max=None):
+    def __init__(
+        self, endpoint_class, method="cursor", value=None, per_page=None, n_max=None
+    ):
         self.method = method
         self.endpoint_class = endpoint_class
         self.value = value
@@ -410,7 +428,8 @@ class Paginator:
             raise ValueError("Method should be 'cursor' or 'page'")
 
         if self.per_page is not None and (
-            not isinstance(self.per_page, int) or (self.per_page < 1 or self.per_page > 200)
+            not isinstance(self.per_page, int)
+            or (self.per_page < 1 or self.per_page > 200)
         ):
             raise ValueError("per_page should be a integer between 1 and 200")
 
@@ -474,15 +493,23 @@ class BaseOpenAlex:
 
     def __getattr__(self, key):
         if key == "groupby":
-            raise AttributeError("Object has no attribute 'groupby'. Did you mean 'group_by'?")
+            raise AttributeError(
+                "Object has no attribute 'groupby'. Did you mean 'group_by'?"
+            )
 
         if key == "filter_search":
-            raise AttributeError("Object has no attribute 'filter_search'. Did you mean 'search_filter'?")
+            raise AttributeError(
+                "Object has no attribute 'filter_search'. Did you mean 'search_filter'?"
+            )
 
         if key == "query":
-            raise AttributeError("Object has no attribute 'query'. Use Works().similar() to find similar works.")
+            raise AttributeError(
+                "Object has no attribute 'query'. Use Works().similar() to find similar works."
+            )
 
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{key}'")
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{key}'"
+        )
 
     def __getitem__(self, record_id):
         if isinstance(record_id, list):
@@ -504,7 +531,9 @@ class BaseOpenAlex:
                 if v is None:
                     pass
                 elif isinstance(v, list):
-                    l_params.append("{}={}".format(k, ",".join(map(_quote_oa_value, v))))
+                    l_params.append(
+                        "{}={}".format(k, ",".join(map(_quote_oa_value, v)))
+                    )
                 elif k in ["filter", "sort"]:
                     l_params.append(f"{k}={_flatten_kv(v)}")
                 else:
@@ -565,10 +594,15 @@ class BaseOpenAlex:
                 _handle_429(res)
 
         if res.status_code == 400:
-            if isinstance(res.json()["error"], str) and "query parameters" in res.json()["error"]:
+            if (
+                isinstance(res.json()["error"], str)
+                and "query parameters" in res.json()["error"]
+            ):
                 raise QueryError(res.json()["message"])
         if res.status_code == 401 and "API key" in res.json()["error"]:
-            raise QueryError(f"{res.json()['error']}. Did you configure a valid API key?")
+            raise QueryError(
+                f"{res.json()['error']}. Did you configure a valid API key?"
+            )
 
         res.raise_for_status()
         res_json = res.json()
@@ -587,7 +621,9 @@ class BaseOpenAlex:
         raise ValueError("Unknown response format")
 
     def get(self, return_meta=False, page=None, per_page=None, cursor=None):
-        if per_page is not None and (not isinstance(per_page, int) or (per_page < 1 or per_page > 200)):
+        if per_page is not None and (
+            not isinstance(per_page, int) or (per_page < 1 or per_page > 200)
+        ):
             raise ValueError("per_page should be an integer between 1 and 200")
 
         if not isinstance(self.params, (str, list)):
@@ -636,7 +672,9 @@ class BaseOpenAlex:
         else:
             raise ValueError("Method should be 'cursor' or 'page'")
 
-        return Paginator(self, method=method, value=value, per_page=per_page, n_max=n_max)
+        return Paginator(
+            self, method=method, value=value, per_page=per_page, n_max=n_max
+        )
 
     def random(self):
         """Get a random result.
@@ -946,7 +984,9 @@ class BaseContent:
 
         if res.status_code == 429:
             _handle_429(res)
-            res = session.get(self.url, auth=OpenAlexAuth(config), allow_redirects=False)
+            res = session.get(
+                self.url, auth=OpenAlexAuth(config), allow_redirects=False
+            )
             if res.status_code == 429:
                 _handle_429(res)
 
@@ -955,7 +995,9 @@ class BaseContent:
         if res.status_code in (301, 302, 307, 308):
             redirect_url = res.headers.get("Location")
             if redirect_url is None:
-                raise ValueError("Content API returned redirect with no Location header")
+                raise ValueError(
+                    "Content API returned redirect with no Location header"
+                )
             content_res = session.get(redirect_url)
             content_res.raise_for_status()
             return content_res.content
