@@ -1,3 +1,4 @@
+import html
 import logging
 import warnings
 from urllib.parse import quote_plus
@@ -241,7 +242,9 @@ def invert_abstract(inv_index):
     """
     if inv_index is not None:
         l_inv = [(w, p) for w, pos in inv_index.items() for p in pos]
-        return " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
+        return html.unescape(
+            " ".join(map(lambda x: x[0], sorted(l_inv, key=lambda x: x[1])))
+        )
 
 
 def _wrap_values_nested_dict(d, func):
