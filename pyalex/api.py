@@ -1,4 +1,5 @@
 import logging
+import math
 import warnings
 from urllib.parse import quote_plus
 from urllib.parse import urlunparse
@@ -379,7 +380,7 @@ class Paginator:
             self._next_value = r.meta["next_cursor"]
 
         if self.method == "page":
-            if len(r) > 0:
+            if math.ceil(r.meta['count'] / self.per_page) > r.meta['page']:
                 self._next_value = r.meta["page"] + 1
             else:
                 self._next_value = None
