@@ -1,4 +1,5 @@
 import logging
+import threading
 import warnings
 from urllib.parse import quote_plus
 from urllib.parse import urlunparse
@@ -203,27 +204,49 @@ def _params_merge(params, add_params):
             params[k] = add_params[k]
 
 
+_session = None
+_session_retry_settings = None
+_session_lock = threading.Lock()
+
+
 def _get_requests_session():
-    """Create a Requests session with automatic retry.
+    """Return a shared Requests session with automatic retry.
+
+    The session is created once and reused for all requests, so the
+    underlying connections stay alive and TLS handshakes are not repeated
+    on every request. The session is rebuilt if the retry configuration
+    changes.
 
     Returns
     -------
     requests.Session
-        Requests session with retry configuration.
+        Shared Requests session with retry configuration.
     """
-    # create an Requests Session with automatic retry:
-    requests_session = requests.Session()
-    retries = Retry(
-        total=config.max_retries,
-        backoff_factor=config.retry_backoff_factor,
-        status_forcelist=config.retry_http_codes,
-        allowed_methods={"GET", "POST"},
-    )
-    requests_session.mount(
-        "https://", requests.adapters.HTTPAdapter(max_retries=retries)
+    global _session, _session_retry_settings
+
+    retry_settings = (
+        config.max_retries,
+        config.retry_backoff_factor,
+        tuple(config.retry_http_codes),
     )
 
-    return requests_session
+    with _session_lock:
+        if _session is None or _session_retry_settings != retry_settings:
+            requests_session = requests.Session()
+            retries = Retry(
+                total=config.max_retries,
+                backoff_factor=config.retry_backoff_factor,
+                status_forcelist=config.retry_http_codes,
+                allowed_methods={"GET", "POST"},
+            )
+            requests_session.mount(
+                "https://", requests.adapters.HTTPAdapter(max_retries=retries)
+            )
+
+            _session = requests_session
+            _session_retry_settings = retry_settings
+
+    return _session
 
 
 def invert_abstract(inv_index):
