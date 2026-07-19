@@ -34,6 +34,12 @@ class AlexConfig(dict):
         Backoff factor for retries.
     retry_http_codes : list
         List of HTTP status codes to retry on.
+    timeout : float or tuple or None
+        Timeout in seconds passed to every request (a (connect, read)
+        tuple is also accepted). Without it a stalled connection can
+        hang forever; with it the request raises requests.exceptions.Timeout
+        instead, and connect/read errors are retried up to max_retries
+        before the exception propagates. None disables the timeout.
     """
 
     def __getattr__(self, key):
@@ -51,6 +57,7 @@ config = AlexConfig(
     max_retries=0,
     retry_backoff_factor=0.1,
     retry_http_codes=[429, 500, 503],
+    timeout=60.0,
 )
 
 
@@ -524,7 +531,7 @@ class BaseOpenAlex:
 
         logger.debug(f"GET request to URL: {url}")
 
-        res = session.get(url, auth=OpenAlexAuth(config))
+        res = session.get(url, auth=OpenAlexAuth(config), timeout=config.timeout)
 
         if res.status_code == 400:
             if (
@@ -911,7 +918,10 @@ class BaseContent:
         content_url = f"https://content.openalex.org/works/{self.key}"
 
         res = _get_requests_session().get(
-            content_url, auth=OpenAlexAuth(config), allow_redirects=True
+            content_url,
+            auth=OpenAlexAuth(config),
+            allow_redirects=True,
+            timeout=config.timeout,
         )
         res.raise_for_status()
         return res.content
@@ -987,7 +997,9 @@ class Work(OpenAlexEntity):
         openalex_id = self["id"].split("/")[-1]
         n_gram_url = f"{config.openalex_url}/works/{openalex_id}/ngrams"
 
-        res = _get_requests_session().get(n_gram_url, auth=OpenAlexAuth(config))
+        res = _get_requests_session().get(
+            n_gram_url, auth=OpenAlexAuth(config), timeout=config.timeout
+        )
         res.raise_for_status()
         results = res.json()
 

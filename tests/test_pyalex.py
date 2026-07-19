@@ -86,6 +86,19 @@ def test_config():
     pyalex.config.api_key = None
 
 
+def test_config_timeout():
+    assert pyalex.config.timeout == 60.0
+
+    # a (practically) zero timeout raises instead of hanging
+    original = pyalex.config.timeout
+    pyalex.config.timeout = 1e-4
+    try:
+        with pytest.raises(requests.exceptions.RequestException):
+            Works()["W4238809453"]
+    finally:
+        pyalex.config.timeout = original
+
+
 @requires_api_key(reason="OpenAlex requires authentication for unfiltered queries")
 @pytest.mark.parametrize("entity", OPEN_ALEX_ENTITIES)
 def test_meta_entities(entity):
