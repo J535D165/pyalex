@@ -908,10 +908,8 @@ class BaseContent:
         bytes
             Content of the request.
         """
-        content_url = f"https://content.openalex.org/works/{self.key}"
-
         res = _get_requests_session().get(
-            content_url, auth=OpenAlexAuth(config), allow_redirects=True
+            self.url, auth=OpenAlexAuth(config), allow_redirects=True
         )
         res.raise_for_status()
         return res.content
