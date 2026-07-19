@@ -203,6 +203,39 @@ def _params_merge(params, add_params):
             params[k] = add_params[k]
 
 
+class RateLimitError(Exception):
+    """Raised when the server demands a longer wait than we accept.
+
+    OpenAlex answers budget-exhausted requests with 429 and a Retry-After
+    spanning hours (the time left to the midnight-UTC budget reset).
+    urllib3 honors Retry-After by default, which would silently freeze the
+    caller inside a sleep; requests that hit it raise this error
+    immediately instead.
+    """
+
+
+class OpenAlexRetry(Retry):
+    """Retry policy that refuses to sleep on very large Retry-After values.
+
+    Retry-After values up to RETRY_AFTER_MAX seconds (transient rate
+    limiting) are honored as usual; anything above it raises
+    RateLimitError.
+    """
+
+    RETRY_AFTER_MAX = 300  # seconds
+
+    def get_retry_after(self, response):
+        retry_after = super().get_retry_after(response)
+        if retry_after is not None and retry_after > self.RETRY_AFTER_MAX:
+            raise RateLimitError(
+                f"Server asked to retry after {retry_after:.0f}s "
+                f"(> {self.RETRY_AFTER_MAX}s) — on OpenAlex this means the "
+                "daily request budget is exhausted (it resets at midnight "
+                "UTC). Failing fast instead of sleeping."
+            )
+        return retry_after
+
+
 def _get_requests_session():
     """Create a Requests session with automatic retry.
 
@@ -213,7 +246,7 @@ def _get_requests_session():
     """
     # create an Requests Session with automatic retry:
     requests_session = requests.Session()
-    retries = Retry(
+    retries = OpenAlexRetry(
         total=config.max_retries,
         backoff_factor=config.retry_backoff_factor,
         status_forcelist=config.retry_http_codes,

@@ -232,6 +232,23 @@ def test_query_error():
         Works().filter(publication_year_error=2020).get()
 
 
+def test_retry_after_cap():
+    """A huge Retry-After (exhausted daily budget) raises instead of sleeping."""
+    import urllib3
+
+    from pyalex.api import OpenAlexRetry
+    from pyalex.api import RateLimitError
+
+    # short Retry-After (transient rate limiting) is honored as usual
+    resp = urllib3.HTTPResponse(headers={"Retry-After": "30"})
+    assert OpenAlexRetry().get_retry_after(resp) == 30
+
+    # hours-long Retry-After fails fast
+    resp = urllib3.HTTPResponse(headers={"Retry-After": "53578"})
+    with pytest.raises(RateLimitError):
+        OpenAlexRetry().get_retry_after(resp)
+
+
 @requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_data_publications():
     w = (
