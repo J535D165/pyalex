@@ -506,8 +506,8 @@ class BaseOpenAlex:
 
         if isinstance(self.params, str):
             # Keep the colon of an ID literal (e.g. "doi:10.7717/...")
-                # in the path: percent-encoding it makes OpenAlex bill the
-        # single-entity lookup like a list request (issue #112).
+            # in the path: percent-encoding it makes OpenAlex bill the
+            # single-entity lookup like a list request (issue #112).
             # Everything else is encoded as before.
             path = f"{base_path}/{_quote_oa_value(self.params, safe=':')}"
             query = ""
