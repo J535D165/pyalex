@@ -218,6 +218,37 @@ def test_works_url():
     assert Works().url == "https://api.openalex.org/works"
 
 
+def test_single_entity_doi_url_keeps_colon():
+    """Single-entity DOI lookups must keep the colon in the path (issue #112).
+
+    Percent-encoding the colon (``doi%3A...``) makes OpenAlex bill the
+    lookup like a list request; the literal-colon form (``doi:...``) is
+    free. The URL is built offline here — no API key or network needed.
+    """
+
+    w = Works()
+    w.params = "doi:10.7717/peerj.4375"
+    assert w.url == "https://api.openalex.org/works/doi:10.7717%2Fpeerj.4375"
+
+    # The full DOI URL form from the README resolves to the same work and
+    # keeps its scheme colon; the slashes stay encoded as before.
+    w = Works()
+    w.params = "https://doi.org/10.7717/peerj.4375"
+    assert (
+        w.url
+        == "https://api.openalex.org/works/https:%2F%2Fdoi.org%2F10.7717%2Fpeerj.4375"
+    )
+
+    # Other ID forms are unchanged.
+    w = Works()
+    w.params = "W2741809807"
+    assert w.url == "https://api.openalex.org/works/W2741809807"
+
+    w = Works()
+    w.params = "10.7717/peerj.4375"
+    assert w.url == "https://api.openalex.org/works/10.7717%2Fpeerj.4375"
+
+
 @requires_api_key(reason="OpenAlex requires authentication for filter queries")
 def test_works_multifilter_meta():
     r1 = Works().filter(publication_year=2020, is_oa=True).get()

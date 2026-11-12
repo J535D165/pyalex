@@ -98,7 +98,7 @@ class lt_(_LogicalExpression):
     token = "<"
 
 
-def _quote_oa_value(v):
+def _quote_oa_value(v, safe=""):
     """Prepare a value for the OpenAlex API.
 
     Applies URL encoding to strings and converts booleans to lowercase strings.
@@ -107,6 +107,11 @@ def _quote_oa_value(v):
     ----------
     v : any
         Value to be prepared.
+    safe : str, optional
+        Characters to leave unencoded. Single-entity lookups keep the colon
+        of an ID literal (``doi:`` or a ``https:`` scheme) so OpenAlex
+        recognises the path as a single entity instead of billing it like
+        a list request (issue #112).
 
     Returns
     -------
@@ -123,7 +128,7 @@ def _quote_oa_value(v):
         return v
 
     if isinstance(v, str):
-        return quote_plus(v)
+        return quote_plus(v, safe=safe)
 
     return v
 
@@ -500,7 +505,11 @@ class BaseOpenAlex:
         base_path = self.__class__.__name__.lower()
 
         if isinstance(self.params, str):
-            path = f"{base_path}/{_quote_oa_value(self.params)}"
+            # Keep the colon of an ID literal (e.g. "doi:10.7717/...")
+            # in the path: percent-encoding it makes OpenAlex bill the
+            # single-entity lookup like a list request (issue #112).
+            # Everything else is encoded as before.
+            path = f"{base_path}/{_quote_oa_value(self.params, safe=':')}"
             query = ""
         else:
             path = base_path
